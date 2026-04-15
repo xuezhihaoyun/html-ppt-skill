@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>页面标题</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #ffffff;
+      --surface:    #f8f9fa;
+      --accent:     #1a2a4a;
+      --accent-2:   #c9a227;
+      --text:       #2c3e50;
+      --text-muted: #6c757d;
+      --border:     #e2e8f0;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2vw 4vw;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .slide.active .anim-1 { animation: fadeUp 0.5s ease 0.0s both; }
+    .slide.active .anim-2 { animation: fadeUp 0.5s ease 0.1s both; }
+    .slide.active .anim-3 { animation: fadeUp 0.5s ease 0.2s both; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .content {
+      width: 100%;
+      max-width: 1600px;
+      text-align: center;
+    }
+
+    /* 进度条 */
+    #progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+      z-index: 100;
+    }
+
+    /* 幻灯片编号 */
+    #slide-num {
+      position: fixed;
+      bottom: 28px; left: 32px;
+      font-size: 12px;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+
+    /* 导航 */
+    #nav {
+      position: fixed;
+      bottom: 28px; right: 32px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 100;
+    }
+    #nav button {
+      width: 40px; height: 40px;
+      background: rgba(26,42,74,0.06);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    #nav button:hover { background: rgba(26,42,74,0.12); }
+    #counter {
+      font-size: 13px;
+      color: var(--text-muted);
+      min-width: 50px;
+      text-align: center;
+    }
+
+    @media print {
+      .slide {
+        position: relative;
+        display: flex !important;
+        page-break-after: always;
+        height: 100vh;
+      }
+      #nav, #progress, #slide-num { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="progress"></div>
+  <div id="slide-num">01</div>
+
+  <div class="slide active" id="s0">
+    <div class="content">
+      <!-- 页面内容写在这里 -->
+    </div>
+  </div>
+
+  <div id="nav">
+    <button onclick="prev()" title="上一张">‹</button>
+    <span id="counter">1 / N</span>
+    <button onclick="next()" title="下一张">›</button>
+  </div>
+
+  <script src="navigation.js"></script>
+</body>
+</html>
