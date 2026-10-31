@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML PPT 组件画廊 — 默认模式组件目录</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#1a2a4a;--accent-2:#c9a227;--accent-3:#3E8FD8;--bg:#ffffff;--surface:#f8f9fa;
+  --text:#2c3e50;--text-muted:#6c757d;--border:#e2e8f0;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.6}
+
+/* ===== 顶部导航 ===== */
+.top-nav{position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.95);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,0.08);padding:12px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.top-nav .brand{font-size:18px;font-weight:700;color:#c9a227;margin-right:16px;white-space:nowrap}
+.top-nav a{display:inline-block;padding:4px 12px;border-radius:6px;font-size:13px;color:#94a3b8;text-decoration:none;transition:all .2s}
+.top-nav a:hover,.top-nav a.active{background:rgba(201,162,39,0.15);color:#c9a227}
+
+/* ===== 画廊主体 ===== */
+.gallery{max-width:960px;margin:0 auto;padding:32px 24px 80px}
+.page-title{font-size:32px;font-weight:700;color:#fff;margin-bottom:8px}
+.page-sub{font-size:15px;color:#94a3b8;margin-bottom:40px}
+
+/* ===== 组件卡片 ===== */
+.comp-card{margin-bottom:48px;background:#1e293b;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.comp-header{padding:20px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.comp-id{font-size:13px;font-weight:700;color:#c9a227;background:rgba(201,162,39,0.12);padding:3px 10px;border-radius:4px;white-space:nowrap}
+.comp-name{font-size:18px;font-weight:600;color:#fff}
+.comp-desc{font-size:13px;color:#94a3b8;margin-left:auto}
+
+/* ===== 预览区 ===== */
+.comp-preview{background:#111827;display:flex;justify-content:center;align-items:center;padding:24px;overflow:hidden}
+.stage-wrap{width:800px;height:450px;position:relative;overflow:hidden;border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,0.4)}
+.stage{width:1600px;height:900px;transform:scale(0.5);transform-origin:top left;background:var(--bg);color:var(--text);font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;padding:40px 60px;display:flex;flex-direction:column}
+.stage-title{font-size:30px;font-weight:700;color:var(--accent);margin-bottom:22px;padding-bottom:10px;border-bottom:3px solid var(--accent-2);display:inline-block;align-self:flex-start}
+.stage-body{flex:1;display:flex;flex-direction:column;justify-content:center}
+
+/* ===== 代码区 ===== */
+.comp-code{border-top:1px solid rgba(255,255,255,0.06);padding:16px 24px;position:relative}
+.comp-code summary{cursor:pointer;font-size:13px;color:#94a3b8;user-select:none}
+.comp-code summary:hover{color:#c9a227}
+.comp-code pre{margin-top:12px;padding:16px;background:#0f172a;border-radius:8px;font-size:12px;line-height:1.7;color:#cbd5e1;overflow-x:auto;white-space:pre;font-family:'SF Mono','Fira Code','Consolas',monospace}
+
+/* ===== 组件内部样式 ===== */
+/* 三色紧凑规格：标题 28~36px，段落/要点 17~19px，卡片/表格 14~16px，注脚 12~13px */
+
+/* -- 通用 -- */
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 16px;text-align:left;font-size:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px}
+.card-icon{font-size:32px;margin-bottom:8px}
+.card-title{font-size:20px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.card-text{font-size:15px;color:var(--text-muted);line-height:1.6}
+
+/* T1 简洁线框 */
+.t1 th{border-bottom:2px solid var(--accent);color:var(--accent);font-weight:600}
+.t1 td{border-bottom:1px solid var(--border)}
+.t1 tr:last-child td{border-bottom:none}
+
+/* T2 斑马纹 */
+.t2 th{background:var(--accent);color:#fff;font-weight:600}
+.t2 tbody tr:nth-child(even){background:var(--surface)}
+
+/* T3 深色表头 */
+.t3 th{background:var(--accent);color:#fff;font-weight:600}
+.t3 td{border-bottom:1px solid var(--border)}
+
+/* C2/C3/C4 卡片 */
+.cards-grid{display:grid;gap:18px}
+.cards-grid.c2{grid-template-columns:1fr 1fr}
+.cards-grid.c3{grid-template-columns:1fr 1fr 1fr}
+.cards-grid.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+
+/* FH 横向流程 */
+.flow-h{display:flex;align-items:center;justify-content:center;gap:0}
+.flow-step{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
+.flow-circle{width:56px;height:56px;border-radius:50%;background:var(--accent-3);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}
+.flow-label{font-size:18px;color:var(--accent);font-weight:600;text-align:center}
+.flow-desc{font-size:15px;color:var(--text-muted);text-align:center;max-width:150px}
+.flow-arrow{font-size:24px;color:var(--accent-2);margin:0 -4px;align-self:center;margin-bottom:24px}
+
+/* FV 纵向时间线 */
+.timeline{display:flex;flex-direction:column;gap:0;position:relative;padding-left:40px}
+.timeline::before{content:'';position:absolute;left:16px;top:28px;bottom:28px;width:2px;background:var(--border)}
+.tl-item{display:flex;align-items:flex-start;gap:18px;padding:10px 0;position:relative}
+.tl-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid var(--accent-2);position:absolute;left:-40px;top:18px}
+.tl-year{font-size:18px;font-weight:700;color:var(--accent-2);min-width:64px}
+.tl-content{flex:1}
+.tl-title{font-size:20px;font-weight:600;color:var(--accent);margin-bottom:3px}
+.tl-desc{font-size:16px;color:var(--text-muted)}
+
+/* BA 对比框 */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.compare-side{border-radius:10px;padding:22px 26px}
+.compare-left{background:var(--surface);border:1px solid var(--border)}
+.compare-right{background:var(--accent);color:#fff}
+.compare-label{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;opacity:0.7}
+.compare-right .compare-label{color:var(--accent-2)}
+.compare-item{font-size:18px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.compare-left .compare-item::before{content:'✕';color:#e74c3c;font-weight:700}
+.compare-right .compare-item::before{content:'✓';color:var(--accent-2);font-weight:700}
+
+/* ST 数据大字报 */
+.stats-grid{display:grid;gap:24px}
+.stats-grid.s3{grid-template-columns:1fr 1fr 1fr}
+.stats-grid.s4{grid-template-columns:1fr 1fr 1fr 1fr}
+.stat-box{text-align:center;padding:20px}
+.stat-number{font-size:56px;font-weight:800;color:var(--accent);line-height:1}
+.stat-unit{font-size:20px;color:var(--accent-2);font-weight:600}
+.stat-label{font-size:16px;color:var(--text-muted);margin-top:6px}
+
+/* QT 引用框 */
+.quote-box{border-left:4px solid var(--accent-2);background:var(--surface);padding:20px 24px;border-radius:0 8px 8px 0}
+.quote-text{font-size:22px;color:var(--accent);line-height:1.6}
+.quote-source{font-size:15px;color:var(--text-muted);margin-top:10px}
+
+/* IL 图标列表 */
+.icon-list{display:flex;flex-direction:column;gap:14px}
+.icon-item{display:flex;align-items:center;gap:14px;font-size:18px}
+.icon-badge{width:36px;height:36px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.icon-item-text{color:var(--text)}
+.icon-item-text strong{color:var(--accent)}
+
+/* KV 键值对 */
+.kv-list{display:grid;grid-template-columns:1fr 1fr;gap:12px 32px}
+.kv-item{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-radius:6px}
+.kv-item:nth-child(odd){background:var(--surface)}
+.kv-key{font-size:15px;color:var(--text-muted)}
+.kv-value{font-size:18px;font-weight:600;color:var(--accent)}
+
+/* TI 左文右图 / IT 右文左图 */
+.split-layout{display:grid;gap:32px;align-items:center;height:100%}
+.split-layout.ti{grid-template-columns:1.2fr 1fr}
+.split-layout.it{grid-template-columns:1fr 1.2fr}
+.split-text{display:flex;flex-direction:column;gap:14px}
+.split-text h3{font-size:24px;color:var(--accent);font-weight:700}
+.split-text p{font-size:17px;color:var(--text-muted);line-height:1.7}
+.split-image{background:var(--surface);border:2px dashed var(--border);border-radius:10px;height:300px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:15px}
+
+/* PG 分阶段/进度 */
+.phases{display:flex;flex-direction:column;gap:16px}
+.phase-row{display:flex;align-items:center;gap:16px}
+.phase-bar{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent-3))}
+.phase-label{font-size:17px;color:var(--accent);font-weight:600;min-width:90px}
+.phase-value{font-size:16px;color:var(--text-muted);margin-left:auto}
+
+/* LR 法律关系图 */
+.legal-map{position:relative;height:480px;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.legal-map svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.legal-entity{position:absolute;z-index:2;min-width:190px;min-height:92px;padding:16px 20px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--accent);color:#fff;box-shadow:0 12px 26px rgba(26,42,74,.14)}
+.legal-entity strong{font-size:20px}.legal-entity span{margin-top:5px;font-size:14px;opacity:.78}.legal-entity.neutral{background:var(--accent-3)}.legal-entity.risk{background:#C84C4C}.legal-entity.result{background:#4E8B72}
+.legal-line-label{position:absolute;z-index:3;padding:5px 10px;border-radius:16px;background:var(--bg);border:1px solid var(--border);color:var(--accent);font-size:14px;font-weight:600}
+
+/* EC 证据链 */
+.evidence-chain{display:grid;grid-template-columns:1fr 100px 1fr 100px 1fr;align-items:center;gap:10px}.evidence-stack{display:flex;flex-direction:column;gap:12px}.evidence-item{padding:16px 18px;background:#fff;border:1px solid var(--border);border-radius:10px}.evidence-item strong{display:block;color:var(--accent);font-size:18px}.evidence-item span{display:block;margin-top:4px;color:var(--text-muted);font-size:14px}.chain-arrow{color:var(--accent-2);font-size:38px;text-align:center}.fact-node{padding:24px;border-radius:14px;background:#eaf2fb;border:2px solid #9fc9ef;color:var(--accent);text-align:center}.result-node{padding:28px;border-radius:14px;background:var(--accent);color:#fff;text-align:center}.fact-node strong,.result-node strong{display:block;font-size:22px}.fact-node span,.result-node span{display:block;margin-top:8px;font-size:14px;line-height:1.5}
+
+/* DF 法律判断流程 */
+.decision-flow{position:relative;height:480px;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}.decision-flow svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}.decision-node{position:absolute;z-index:2;width:200px;min-height:82px;padding:14px 16px;border-radius:10px;display:grid;place-items:center;text-align:center;background:#eaf2fb;border:2px solid #9fc9ef;color:var(--accent);font-size:17px;font-weight:600}.decision-node.start{background:var(--accent);border-color:var(--accent);color:#fff}.decision-node.risk{background:#C84C4C;border-color:#C84C4C;color:#fff}.decision-node.result{background:#4E8B72;border-color:#4E8B72;color:#fff}.decision-tag{position:absolute;z-index:3;padding:4px 8px;border-radius:12px;background:var(--bg);font-size:13px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部导航 ===== -->
+<nav class="top-nav">
+  <span class="brand">PPT 组件画廊</span>
+  <a href="#T1">T1</a><a href="#T2">T2</a><a href="#T3">T3</a>
+  <a href="#C2">C2</a><a href="#C3">C3</a><a href="#C4">C4</a>
+  <a href="#FH">FH</a><a href="#FV">FV</a>
+  <a href="#BA">BA</a><a href="#ST">ST</a><a href="#QT">QT</a>
+  <a href="#IL">IL</a><a href="#KV">KV</a><a href="#TI">TI</a><a href="#IT">IT</a>
+  <a href="#PG">PG</a><a href="#LR">LR</a><a href="#EC">EC</a><a href="#DF">DF</a>
+</nav>
+
+<main class="gallery">
+  <h1 class="page-title">组件画廊 — 默认模式</h1>
+  <p class="page-sub">每个组件都有唯一编号，在 Markdown 或口头指定编号即可。所有组件按 1600×900 舞台设计，使用 px 单位。</p>
+
+  <!-- ============================================ -->
+  <!-- T1 表格-简洁线框 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="T1">
+    <div class="comp-header">
+      <span class="comp-id">T1</span>
+      <span class="comp-name">表格 — 简洁线框</span>
+      <span class="comp-desc">轻量对比、数据罗列</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">年度经营数据</div>
+        <div class="stage-body">
+          <table class="t1">
+            <thead><tr>
+              <th>指标</th><th>2023年</th><th>2024年</th><th>增长率</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>营收</td><td>1.2 亿</td><td>1.8 亿</td><td style="color:var(--accent-2);font-weight:600">+50%</td></tr>
+              <tr><td>利润</td><td>3,200 万</td><td>5,100 万</td><td style="color:var(--accent-2);font-weight:600">+59%</td></tr>
+              <tr><td>客户数</td><td>280</td><td>410</td><td style="color:var(--accent-2);font-weight:600">+46%</td></tr>
+              <tr><td>人效</td><td>85 万/人</td><td>112 万/人</td><td style="color:var(--accent-2);font-weight:600">+32%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;table class="t1"&gt;
+  &lt;thead&gt;&lt;tr&gt;
+    &lt;th&gt;指标&lt;/th&gt;&lt;th&gt;2023年&lt;/th&gt;&lt;th&gt;2024年&lt;/th&gt;&lt;th&gt;增长率&lt;/th&gt;
+  &lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;营收&lt;/td&gt;&lt;td&gt;1.2 亿&lt;/td&gt;&lt;td&gt;1.8 亿&lt;/td&gt;&lt;td style="color:var(--accent-2);font-weight:600"&gt;+50%&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;利润&lt;/td&gt;&lt;td&gt;3,200 万&lt;/td&gt;&lt;td&gt;5,100 万&lt;/td&gt;&lt;td style="color:var(--accent-2);font-weight:600"&gt;+59%&lt;/td&gt;&lt;/tr&gt;
+    ...
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- T2 表格-斑马纹 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="T2">
+    <div class="comp-header">
+      <span class="comp-id">T2</span>
+      <span class="comp-name">表格 — 斑马纹</span>
+      <span class="comp-desc">多行数据、扫描式阅读</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">团队核心成员</div>
+        <div class="stage-body">
+          <table class="t2">
+            <thead><tr>
+              <th>姓名</th><th>职位</th><th>专业领域</th><th>执业年限</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>张三</td><td>合伙人</td><td>知识产权</td><td>18 年</td></tr>
+              <tr><td>李四</td><td>高级律师</td><td>民商事诉讼</td><td>12 年</td></tr>
+              <tr><td>王五</td><td>律师</td><td>公司法</td><td>8 年</td></tr>
+              <tr><td>赵六</td><td>律师</td><td>劳动法</td><td>6 年</td></tr>
+              <tr><td>孙七</td><td>实习律师</td><td>争议解决</td><td>2 年</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;table class="t2"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;姓名&lt;/th&gt;&lt;th&gt;职位&lt;/th&gt;&lt;th&gt;专业领域&lt;/th&gt;&lt;th&gt;执业年限&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;张三&lt;/td&gt;&lt;td&gt;合伙人&lt;/td&gt;&lt;td&gt;知识产权&lt;/td&gt;&lt;td&gt;18 年&lt;/td&gt;&lt;/tr&gt;
+    ...
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- T3 表格-深色表头 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="T3">
+    <div class="comp-header">
+      <span class="comp-id">T3</span>
+      <span class="comp-name">表格 — 深色表头</span>
+      <span class="comp-desc">正式汇报、强调表头层级</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">案件进度总览</div>
+        <div class="stage-body">
+          <table class="t3">
+            <thead><tr>
+              <th>案号</th><th>案由</th><th>当事人</th><th>阶段</th><th>下次节点</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>(2024)粤0305民初1234号</td><td>侵害商标权纠纷</td><td>A公司 vs B公司</td><td>一审审理中</td><td>6月15日开庭</td></tr>
+              <tr><td>(2024)粤0305民初5678号</td><td>民间借贷纠纷</td><td>张某 vs 李某</td><td>已判决</td><td>上诉期至7月1日</td></tr>
+              <tr><td>(2024)粤0305执初901号</td><td>合同纠纷执行</td><td>C公司 vs D公司</td><td>执行中</td><td>财产调查中</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;table class="t3"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;案号&lt;/th&gt;&lt;th&gt;案由&lt;/th&gt;&lt;th&gt;当事人&lt;/th&gt;&lt;th&gt;阶段&lt;/th&gt;&lt;th&gt;下次节点&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;(2024)粤0305民初1234号&lt;/td&gt;&lt;td&gt;侵害商标权纠纷&lt;/td&gt;...&lt;/tr&gt;
+    ...
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- C2 卡片-2列 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="C2">
+    <div class="comp-header">
+      <span class="comp-id">C2</span>
+      <span class="comp-name">卡片 — 2 列</span>
+      <span class="comp-desc">两个并列模块、功能对比、双视角</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">两大核心能力</div>
+        <div class="stage-body">
+          <div class="cards-grid c2">
+            <div class="card">
+              <div class="card-icon">🔍</div>
+              <div class="card-title">智能检索</div>
+              <div class="card-text">基于语义的法律条文与案例检索，精准匹配裁判规则，10 秒返回结构化结果</div>
+            </div>
+            <div class="card">
+              <div class="card-icon">📝</div>
+              <div class="card-title">文书生成</div>
+              <div class="card-text">输入案情要素，自动生成起诉状、答辩状、代理词等标准法律文书初稿</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="cards-grid c2"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon"&gt;🔍&lt;/div&gt;
+    &lt;div class="card-title"&gt;智能检索&lt;/div&gt;
+    &lt;div class="card-text"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon"&gt;📝&lt;/div&gt;
+    &lt;div class="card-title"&gt;文书生成&lt;/div&gt;
+    &lt;div class="card-text"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- C3 卡片-3列 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="C3">
+    <div class="comp-header">
+      <span class="comp-id">C3</span>
+      <span class="comp-name">卡片 — 3 列</span>
+      <span class="comp-desc">三要素并列、流程三步、特性展示</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">服务三步走</div>
+        <div class="stage-body">
+          <div class="cards-grid c3">
+            <div class="card">
+              <div class="card-icon">01</div>
+              <div class="card-title">需求诊断</div>
+              <div class="card-text">深度访谈 + 案件分析，明确法律关系与核心争议点</div>
+            </div>
+            <div class="card">
+              <div class="card-icon">02</div>
+              <div class="card-title">策略制定</div>
+              <div class="card-text">结合类案裁判规则，制定诉讼/非诉最优策略方案</div>
+            </div>
+            <div class="card">
+              <div class="card-icon">03</div>
+              <div class="card-title">执行落地</div>
+              <div class="card-text">文书起草、庭审准备、调解谈判，全程跟进到底</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="cards-grid c3"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon"&gt;01&lt;/div&gt;
+    &lt;div class="card-title"&gt;需求诊断&lt;/div&gt;
+    &lt;div class="card-text"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon"&gt;02&lt;/div&gt;
+    &lt;div class="card-title"&gt;策略制定&lt;/div&gt;
+    &lt;div class="card-text"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon"&gt;03&lt;/div&gt;
+    &lt;div class="card-title"&gt;执行落地&lt;/div&gt;
+    &lt;div class="card-text"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- C4 卡片-4列 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="C4">
+    <div class="comp-header">
+      <span class="comp-id">C4</span>
+      <span class="comp-name">卡片 — 4 列</span>
+      <span class="comp-desc">四象限、多维指标、特性矩阵</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">四大业务板块</div>
+        <div class="stage-body">
+          <div class="cards-grid c4">
+            <div class="card">
+              <div class="card-icon">⚖️</div>
+              <div class="card-title">诉讼</div>
+              <div class="card-text">民商事、知产诉讼全流程代理</div>
+            </div>
+            <div class="card">
+              <div class="card-icon">📋</div>
+              <div class="card-title">非诉</div>
+              <div class="card-text">合规审查、尽职调查、出具法律意见</div>
+            </div>
+            <div class="card">
+              <div class="card-icon">🛡️</div>
+              <div class="card-title">知产</div>
+              <div class="card-text">商标专利申请、侵权维权、许可谈判</div>
+            </div>
+            <div class="card">
+              <div class="card-icon">🏢</div>
+              <div class="card-title">顾问</div>
+              <div class="card-text">常年法律顾问、风险预警、制度建设</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="cards-grid c4"&gt;
+  &lt;div class="card"&gt;
+    &lt;div class="card-icon"&gt;⚖️&lt;/div&gt;
+    &lt;div class="card-title"&gt;诉讼&lt;/div&gt;
+    &lt;div class="card-text"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+  ...（4 个卡片）
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- FH 流程-横向 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="FH">
+    <div class="comp-header">
+      <span class="comp-id">FH</span>
+      <span class="comp-name">流程 — 横向</span>
+      <span class="comp-desc">4~5 步流程、工作流、阶段推进</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">案件处理流程</div>
+        <div class="stage-body" style="justify-content:center">
+          <div class="flow-h">
+            <div class="flow-step">
+              <div class="flow-circle">1</div>
+              <div class="flow-label">委托签约</div>
+              <div class="flow-desc">明确委托事项与收费</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="flow-circle">2</div>
+              <div class="flow-label">案件分析</div>
+              <div class="flow-desc">梳理证据与法律关系</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="flow-circle">3</div>
+              <div class="flow-label">策略制定</div>
+              <div class="flow-desc">确定诉讼或谈判方案</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="flow-circle">4</div>
+              <div class="flow-label">庭审执行</div>
+              <div class="flow-desc">出庭代理与裁判执行</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="flow-h"&gt;
+  &lt;div class="flow-step"&gt;
+    &lt;div class="flow-circle"&gt;1&lt;/div&gt;
+    &lt;div class="flow-label"&gt;委托签约&lt;/div&gt;
+    &lt;div class="flow-desc"&gt;明确委托事项与收费&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="flow-arrow"&gt;→&lt;/div&gt;
+  &lt;div class="flow-step"&gt;...&lt;/div&gt;
+  ...
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- FV 流程-纵向时间线 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="FV">
+    <div class="comp-header">
+      <span class="comp-id">FV</span>
+      <span class="comp-name">流程 — 纵向时间线</span>
+      <span class="comp-desc">发展历程、里程碑、时间线叙事</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">发展里程碑</div>
+        <div class="stage-body">
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-year">2019</div>
+              <div class="tl-content">
+                <div class="tl-title">律所成立</div>
+                <div class="tl-desc">3 名创始合伙人，专注知识产权领域</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-year">2021</div>
+              <div class="tl-content">
+                <div class="tl-title">团队扩展</div>
+                <div class="tl-desc">律师增至 15 人，新增民商事诉讼部门</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-year">2023</div>
+              <div class="tl-content">
+                <div class="tl-title">区域布局</div>
+                <div class="tl-desc">设立前海分所，服务粤港澳大湾区</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-year">2025</div>
+              <div class="tl-content">
+                <div class="tl-title">数字化转型</div>
+                <div class="tl-desc">引入 AI 法律助手，人效提升 40%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="timeline"&gt;
+  &lt;div class="tl-item"&gt;
+    &lt;div class="tl-dot"&gt;&lt;/div&gt;
+    &lt;div class="tl-year"&gt;2019&lt;/div&gt;
+    &lt;div class="tl-content"&gt;
+      &lt;div class="tl-title"&gt;律所成立&lt;/div&gt;
+      &lt;div class="tl-desc"&gt;...&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  ...
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- BA 对比框 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="BA">
+    <div class="comp-header">
+      <span class="comp-id">BA</span>
+      <span class="comp-name">对比框 — Before / After</span>
+      <span class="comp-desc">旧 vs 新、问题 vs 方案、传统 vs 智能</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">传统 vs AI 辅助</div>
+        <div class="stage-body">
+          <div class="compare">
+            <div class="compare-side compare-left">
+              <div class="compare-label">传统模式</div>
+              <div class="compare-item">手工翻阅法条</div>
+              <div class="compare-item">逐案类比推理</div>
+              <div class="compare-item">文书逐字起草</div>
+              <div class="compare-item">靠经验估风险</div>
+            </div>
+            <div class="compare-side compare-right">
+              <div class="compare-label">AI 辅助模式</div>
+              <div class="compare-item">语义检索秒出结果</div>
+              <div class="compare-item">类案裁判规则一键匹配</div>
+              <div class="compare-item">要素驱动自动生成</div>
+              <div class="compare-item">数据量化风险评估</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="compare"&gt;
+  &lt;div class="compare-side compare-left"&gt;
+    &lt;div class="compare-label"&gt;传统模式&lt;/div&gt;
+    &lt;div class="compare-item"&gt;手工翻阅法条&lt;/div&gt;
+    ...
+  &lt;/div&gt;
+  &lt;div class="compare-side compare-right"&gt;
+    &lt;div class="compare-label"&gt;AI 辅助模式&lt;/div&gt;
+    &lt;div class="compare-item"&gt;语义检索秒出结果&lt;/div&gt;
+    ...
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- ST 数据大字报 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="ST">
+    <div class="comp-header">
+      <span class="comp-id">ST</span>
+      <span class="comp-name">数据大字报</span>
+      <span class="comp-desc">核心指标、成绩单、关键数字</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">2024 年度成绩</div>
+        <div class="stage-body" style="justify-content:center">
+          <div class="stats-grid s4">
+            <div class="stat-box">
+              <div class="stat-number">410<span class="stat-unit">+</span></div>
+              <div class="stat-label">服务客户数</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">96<span class="stat-unit">%</span></div>
+              <div class="stat-label">案件胜诉率</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">2.8<span class="stat-unit">亿</span></div>
+              <div class="stat-label">挽回损失金额</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">40<span class="stat-unit">%</span></div>
+              <div class="stat-label">人效提升</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="stats-grid s4"&gt;
+  &lt;div class="stat-box"&gt;
+    &lt;div class="stat-number"&gt;410&lt;span class="stat-unit"&gt;+&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="stat-label"&gt;服务客户数&lt;/div&gt;
+  &lt;/div&gt;
+  ...
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- QT 引用框 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="QT">
+    <div class="comp-header">
+      <span class="comp-id">QT</span>
+      <span class="comp-name">引用框 / 强调框</span>
+      <span class="comp-desc">金句、法规引用、核心观点强调</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">核心理念</div>
+        <div class="stage-body" style="justify-content:center">
+          <div class="quote-box">
+            <div class="quote-text">法律的生命不在于逻辑，而在于经验。</div>
+            <div class="quote-source">— 霍姆斯《普通法》</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="quote-box"&gt;
+  &lt;div class="quote-text"&gt;法律的生命不在于逻辑，而在于经验。&lt;/div&gt;
+  &lt;div class="quote-source"&gt;— 霍姆斯《普通法》&lt;/div&gt;
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- IL 图标+文字列表 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="IL">
+    <div class="comp-header">
+      <span class="comp-id">IL</span>
+      <span class="comp-name">图标 + 文字列表</span>
+      <span class="comp-desc">特性清单、功能列表、要点罗列</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">产品核心功能</div>
+        <div class="stage-body">
+          <div class="icon-list">
+            <div class="icon-item">
+              <div class="icon-badge">🔍</div>
+              <div class="icon-item-text"><strong>语义检索</strong> — 自然语言提问，精准匹配法条与案例</div>
+            </div>
+            <div class="icon-item">
+              <div class="icon-badge">📝</div>
+              <div class="icon-item-text"><strong>文书生成</strong> — 输入要素，自动输出规范法律文书</div>
+            </div>
+            <div class="icon-item">
+              <div class="icon-badge">📊</div>
+              <div class="icon-item-text"><strong>类案分析</strong> — 裁判规则提取与类案推送</div>
+            </div>
+            <div class="icon-item">
+              <div class="icon-badge">⚠️</div>
+              <div class="icon-item-text"><strong>风险预警</strong> — 合同条款自动审查与风险标注</div>
+            </div>
+            <div class="icon-item">
+              <div class="icon-badge">📅</div>
+              <div class="icon-item-text"><strong>日程管理</strong> — 庭审、保全、上诉期限智能提醒</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="icon-list"&gt;
+  &lt;div class="icon-item"&gt;
+    &lt;div class="icon-badge"&gt;🔍&lt;/div&gt;
+    &lt;div class="icon-item-text"&gt;&lt;strong&gt;语义检索&lt;/strong&gt; — ...&lt;/div&gt;
+  &lt;/div&gt;
+  ...
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- KV 键值对 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="KV">
+    <div class="comp-header">
+      <span class="comp-id">KV</span>
+      <span class="comp-name">键值对列表</span>
+      <span class="comp-desc">案件信息、属性展示、档案卡片</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">案件概要</div>
+        <div class="stage-body">
+          <div class="kv-list">
+            <div class="kv-item"><span class="kv-key">案号</span><span class="kv-value">(2024)粤0305民初1234号</span></div>
+            <div class="kv-item"><span class="kv-key">案由</span><span class="kv-value">侵害商标权纠纷</span></div>
+            <div class="kv-item"><span class="kv-key">原告</span><span class="kv-value">A科技有限公司</span></div>
+            <div class="kv-item"><span class="kv-key">被告</span><span class="kv-value">B商贸有限公司</span></div>
+            <div class="kv-item"><span class="kv-key">标的额</span><span class="kv-value">¥ 580,000</span></div>
+            <div class="kv-item"><span class="kv-key">管辖法院</span><span class="kv-value">深圳市南山区人民法院</span></div>
+            <div class="kv-item"><span class="kv-key">当前阶段</span><span class="kv-value">一审审理中</span></div>
+            <div class="kv-item"><span class="kv-key">下次节点</span><span class="kv-value">2024年6月15日 开庭</span></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="kv-list"&gt;
+  &lt;div class="kv-item"&gt;&lt;span class="kv-key"&gt;案号&lt;/span&gt;&lt;span class="kv-value"&gt;(2024)粤0305民初1234号&lt;/span&gt;&lt;/div&gt;
+  &lt;div class="kv-item"&gt;&lt;span class="kv-key"&gt;案由&lt;/span&gt;&lt;span class="kv-value"&gt;侵害商标权纠纷&lt;/span&gt;&lt;/div&gt;
+  ...
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- TI 左文右图 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="TI">
+    <div class="comp-header">
+      <span class="comp-id">TI</span>
+      <span class="comp-name">左文右图</span>
+      <span class="comp-desc">图文混排、产品介绍、案例展示</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">AI 辅助办案系统</div>
+        <div class="stage-body">
+          <div class="split-layout ti">
+            <div class="split-text">
+              <h3>一站式法律智能平台</h3>
+              <p>集成语义检索、文书生成、类案分析三大核心模块，将律师从重复劳动中解放出来，专注于策略思考与客户沟通。</p>
+              <p>已服务超过 400 家律所，平均节省 60% 文书时间。</p>
+            </div>
+            <div class="split-image">图片占位区域<br>（放置产品截图或示意图）</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="split-layout ti"&gt;
+  &lt;div class="split-text"&gt;
+    &lt;h3&gt;一站式法律智能平台&lt;/h3&gt;
+    &lt;p&gt;...&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="split-image"&gt;图片占位&lt;/div&gt;
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- IT 右文左图 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="IT">
+    <div class="comp-header">
+      <span class="comp-id">IT</span>
+      <span class="comp-name">右文左图</span>
+      <span class="comp-desc">图先入为主、数据可视化配文、流程截图</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">数据驱动决策</div>
+        <div class="stage-body">
+          <div class="split-layout it">
+            <div class="split-image">图片占位区域<br>（放置数据图表或截图）</div>
+            <div class="split-text">
+              <h3>可视化案件管理</h3>
+              <p>实时看板展示案件进度、节点倒计时、团队工时分配，管理者一目了然。</p>
+              <p>支持自定义筛选与导出，满足不同层级的数据需求。</p>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="split-layout it"&gt;
+  &lt;div class="split-image"&gt;图片占位&lt;/div&gt;
+  &lt;div class="split-text"&gt;
+    &lt;h3&gt;可视化案件管理&lt;/h3&gt;
+    &lt;p&gt;...&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PG 分阶段/进度条 -->
+  <!-- ============================================ -->
+  <div class="comp-card" id="PG">
+    <div class="comp-header">
+      <span class="comp-id">PG</span>
+      <span class="comp-name">分阶段进度条</span>
+      <span class="comp-desc">占比对比、阶段完成度、资源分配</span>
+    </div>
+    <div class="comp-preview">
+      <div class="stage-wrap"><div class="stage">
+        <div class="stage-title">业务构成</div>
+        <div class="stage-body" style="justify-content:center">
+          <div class="phases">
+            <div class="phase-row">
+              <span class="phase-label">诉讼业务</span>
+              <div class="phase-bar" style="width:420px"></div>
+              <span class="phase-value">45%</span>
+            </div>
+            <div class="phase-row">
+              <span class="phase-label">知产业务</span>
+              <div class="phase-bar" style="width:320px"></div>
+              <span class="phase-value">30%</span>
+            </div>
+            <div class="phase-row">
+              <span class="phase-label">顾问业务</span>
+              <div class="phase-bar" style="width:180px"></div>
+              <span class="phase-value">17%</span>
+            </div>
+            <div class="phase-row">
+              <span class="phase-label">其他</span>
+              <div class="phase-bar" style="width:80px"></div>
+              <span class="phase-value">8%</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <details class="comp-code"><summary>查看 HTML 代码</summary>
+<pre>&lt;div class="phases"&gt;
+  &lt;div class="phase-row"&gt;
+    &lt;span class="phase-label"&gt;诉讼业务&lt;/span&gt;
+    &lt;div class="phase-bar" style="width:420px"&gt;&lt;/div&gt;
+    &lt;span class="phase-value"&gt;45%&lt;/span&gt;
+  &lt;/div&gt;
+  ...
+&lt;/div&gt;</pre>
+    </details>
+  </div>
+
+  <!-- LR 法律关系图 -->
+  <div class="comp-card" id="LR">
+    <div class="comp-header"><span class="comp-id">LR</span><span class="comp-name">法律关系图</span><span class="comp-desc">合同、资金、控制与责任分层</span></div>
+    <div class="comp-preview"><div class="stage-wrap"><div class="stage">
+      <div class="stage-title">借款关系与实际用款</div>
+      <div class="stage-body">
+        <div class="legal-map">
+          <svg viewBox="0 0 1480 480" preserveAspectRatio="none"><defs><marker id="lrA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1a2a4a"/></marker><marker id="lrG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#c9a227"/></marker><marker id="lrR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#C84C4C"/></marker></defs><path d="M290 180 C430 180 500 110 650 110" fill="none" stroke="#1a2a4a" stroke-width="4" marker-end="url(#lrA)"/><path d="M290 285 C440 285 500 360 650 360" fill="none" stroke="#c9a227" stroke-width="5" marker-end="url(#lrG)"/><path d="M840 110 C980 110 1040 230 1190 230" fill="none" stroke="#1a2a4a" stroke-width="4" marker-end="url(#lrA)"/><path d="M840 360 C980 360 1040 280 1190 260" fill="none" stroke="#C84C4C" stroke-width="4" stroke-dasharray="12 9" marker-end="url(#lrR)"/></svg>
+          <div class="legal-entity" style="left:70px;top:190px"><strong>出借人</strong><span>资金提供者</span></div>
+          <div class="legal-entity neutral" style="left:650px;top:55px"><strong>名义借款人</strong><span>合同签署主体</span></div>
+          <div class="legal-entity risk" style="left:650px;top:305px"><strong>实际用款人</strong><span>接收并支配款项</span></div>
+          <div class="legal-entity result" style="right:70px;top:190px"><strong>项目公司</strong><span>资金最终投入</span></div>
+          <span class="legal-line-label" style="left:400px;top:100px">借款合同</span><span class="legal-line-label" style="left:390px;top:330px">资金流</span><span class="legal-line-label" style="right:360px;top:325px">实际控制</span>
+        </div>
+      </div>
+    </div></div></div>
+    <details class="comp-code"><summary>使用说明</summary><pre>组件 LR：主体节点使用绝对定位，关系线使用 SVG。
+深蓝实线=合同/权利义务；金色实线=资金/财产；红色虚线=争议或实际控制。
+每条线必须标明关系名称，图下补一句读图结论。</pre></details>
+  </div>
+
+  <!-- EC 证据链 -->
+  <div class="comp-card" id="EC">
+    <div class="comp-header"><span class="comp-id">EC</span><span class="comp-name">证据链</span><span class="comp-desc">证据 → 待证事实 → 阶段结论</span></div>
+    <div class="comp-preview"><div class="stage-wrap"><div class="stage">
+      <div class="stage-title">付款义务证明路径</div>
+      <div class="stage-body"><div class="evidence-chain">
+        <div class="evidence-stack"><div class="evidence-item"><strong>银行流水</strong><span>证明金额与付款时间</span></div><div class="evidence-item"><strong>收款确认</strong><span>证明对方已经收款</span></div><div class="evidence-item"><strong>聊天记录</strong><span>补充说明款项性质</span></div></div>
+        <div class="chain-arrow">→</div><div class="fact-node"><strong>已经完成付款</strong><span>金额、时间、账户与用途相互对应</span></div><div class="chain-arrow">→</div><div class="result-node"><strong>证据链基本闭合</strong><span>若付款条件与验收挂钩，仍需补验收材料</span></div>
+      </div></div>
+    </div></div></div>
+    <details class="comp-code"><summary>使用说明</summary><pre>组件 EC：固定使用“证据材料 → 待证事实 → 阶段结论”三段结构。
+每份证据必须说明证明事项；结论节点同时显示证据强度或缺口。</pre></details>
+  </div>
+
+  <!-- DF 法律判断流程 -->
+  <div class="comp-card" id="DF">
+    <div class="comp-header"><span class="comp-id">DF</span><span class="comp-name">法律判断流程</span><span class="comp-desc">请求权基础、构成要件与程序分支</span></div>
+    <div class="comp-preview"><div class="stage-wrap"><div class="stage">
+      <div class="stage-title">建设工程价款请求权审查</div>
+      <div class="stage-body"><div class="decision-flow">
+        <svg viewBox="0 0 1480 480" preserveAspectRatio="none"><defs><marker id="dfA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#c9a227"/></marker></defs><path d="M270 240 H390" stroke="#c9a227" stroke-width="4" marker-end="url(#dfA)"/><path d="M590 240 C650 240 650 120 720 120" fill="none" stroke="#c9a227" stroke-width="4" marker-end="url(#dfA)"/><path d="M590 240 C650 240 650 360 720 360" fill="none" stroke="#c9a227" stroke-width="4" marker-end="url(#dfA)"/><path d="M920 120 H1060" stroke="#c9a227" stroke-width="4" marker-end="url(#dfA)"/><path d="M920 360 H1060" stroke="#c9a227" stroke-width="4" marker-end="url(#dfA)"/></svg>
+        <div class="decision-node start" style="left:70px;top:199px">确认请求基础</div><div class="decision-node" style="left:390px;top:199px">合同是否有效？</div><div class="decision-node" style="left:720px;top:79px">工程是否交付？</div><div class="decision-node" style="left:720px;top:319px">是否存在实际履行？</div><div class="decision-node result" style="right:70px;top:79px">计算价款与利息</div><div class="decision-node risk" style="right:70px;top:319px">评价折价补偿</div><span class="decision-tag" style="left:645px;top:135px;color:#4E8B72">是</span><span class="decision-tag" style="left:645px;top:330px;color:#C84C4C">否</span>
+      </div></div>
+    </div></div></div>
+    <details class="comp-code"><summary>使用说明</summary><pre>组件 DF：每个判断节点写成可回答“是/否”的问题，分支标明条件。
+终点必须写具体法律后果；超过 7 个节点或三层分支时拆页。</pre></details>
+  </div>
+
+</main>
+
+<!-- ===== 底部 ===== -->
+<div style="text-align:center;padding:40px;color:#475569;font-size:13px">
+  HTML PPT 组件画廊 — 默认模式 &nbsp;|&nbsp; 共 19 个组件 &nbsp;|&nbsp; 在 Markdown 或口述中使用组件编号即可指定版式
+</div>
+
+</body>
+</html>

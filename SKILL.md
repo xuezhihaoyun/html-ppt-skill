@@ -1,4 +1,9 @@
-# HTML PPT 制作 Skill
+---
+name: html-ppt
+description: 用 Markdown + HTML 打造专业级网页幻灯片，用于正式汇报、培训、课程、法律实务分享与案件可视化，强调 16:9、统一模板、版式稳定、零依赖可离线分享，并支持法律关系图、证据链、判断流程、局部修改协议与交互式编排器。
+---
+
+# HTML PPT 制作 Skill — 完整文档
 
 ## 一、触发条件
 
@@ -8,33 +13,57 @@
 - "生成一组网页版演示文稿"
 - "用 HTML/CSS 做 PPT"
 - "把这个 Markdown 转成 PPT"
+- "做PPT"、"做幻灯片"、"网页演示"
+
+---
 
 ## 二、核心原则
 
 1. **一切始于 Markdown 文档**：在写任何一行 HTML 之前，必须先共建或拆解出一份结构清晰的 `.md` 文档。
 2. **迭代是常态**：用户随时可能中途调整内容、顺序、配色、版式。每次调整优先改 MD，再同步生成对应 HTML。
-3. **为分享而生**：所有本地资源（图片、图标等）必须默认内嵌为 Base64 Data URI，最终输出一个可断网运行的 `all_slides.html`。
+3. **为分享而生**：所有本地资源必须默认内嵌为 Base64 Data URI，最终输出一个可断网运行的 `all_slides.html`。
+
+---
 
 ## 三、制作流程
 
 ### Step 0：共建 Markdown 文档
 这是整个流程的**起点和锚点**。
 
-**如果用户只给了一个粗略想法**：
-- 主动向用户确认：页数、演讲时长、目标受众、核心章节
-- 提供一份 Markdown 大纲草稿，让用户填充内容
+**初始询问模式（自然对话式，不要给用户出选择题，直接问核心信息）**：
 
-**如果用户给了一份不完善的 Markdown**：
-- 先阅读并拆解文档
-- 提出需要补充的信息：
-  - 每页的**设计要求**（版式、图标意象、配色微调）
-  - 是否有**截图/图片**需要插入及对应页码
-  - 封面/结束页/过渡页的特殊视觉效果
-  - 是否有表格、流程图、代码展示等特殊元素
-- 将拆解结果整理成规范的 Markdown 后，**等待用户确认或修改**
+启动 skill 后，直接向用户确认以下信息（根据情况灵活调整，不需要一次性全问完）：
+1. **主题**：这次要讲什么内容？
+2. **受众**：给谁看？（客户、法官、同事、投资人、学生等）
+3. **时长 & 页数**：大概讲多久？希望控制在多少页？
+4. **核心思路**：有没有已经想好的框架、论点或故事线？
+5. **参考材料**：有没有现成的文档、数据、截图可以发给我？
+6. **风格偏好**：直接列出所有可选风格让用户选择（见下方风格列表），不要只问"有没有倾向"，要主动呈现选项。
 
-**如果用户给了一份完整的 Markdown**：
-- 核对清单：页数、工具清单完整性、图片引用路径、色彩规范
+> 原则：有材料直接让用户发，没材料就口述共建。不要让用户在"选 A 还是选 B"之间做选择。
+
+**可选风格列表（Step 0 直接呈现给用户）**：
+
+| 风格 | 适用场景 | 模式 |
+|------|---------|------|
+| 深海军蓝 + 香槟金 | 通用商务、法律 presentation | 默认模式 |
+| 墨绿金章 / 冷灰科技 / 深蓝咨询等 | 详见 `references/style_presets.md` | 默认模式 |
+
+**三种输入情况的处理**：
+
+**情况 A：用户有现成材料**（Word、PDF、PPT、笔记、大纲等）
+- 直接接收材料
+- 阅读并拆解成标准 Markdown 结构
+- 提出需要补充的信息（图片页码、版式偏好、特殊元素等）
+- 等待用户确认或修改
+
+**情况 B：用户从零开始，口述内容**
+- 基于用户回答的 6 个核心问题，写 Markdown 大纲草稿
+- 让用户确认、补充或修改
+- 迭代到用户满意后再进入下一步
+
+**情况 C：用户给了一份 Markdown**
+- 核对清单：页数、结构完整性、图片引用路径、色彩规范
 - 确认无误后进入下一步
 
 **Markdown 文档标准结构**：
@@ -45,20 +74,24 @@
 | 元素 | 颜色 | 色值 |
 
 ## 【整体结构】（N 页）
-| 页码 | 类型 | 内容 |
+| 页码 | 类型 | 组件编号 | 内容 |
 
 ## 【第 1 页】封面
 **设计要求：** ...
+**组件：** 封面页模板
 **页面内容：** ...
 
 ## 【第 N 页】结束页
 ...
 ```
 
+> **组件编号**列必填。从 `references/component_catalog.md` 中选择，或在 `templates/component_gallery.html` 中预览效果后指定。不得留空或自行发明新组件样式。
+
 ### Step 1：明确演讲规格（基于确认后的 MD）
 - 总页数
 - 每页内容/结构/版式
 - 色彩偏好（主色、点缀色、背景色）
+- 风格预设：如用户有颜色、行业或气质偏好，优先查 `references/style_presets.md`
 - 需要插入的图片清单及对应页码
 - 是否需要输出为单文件分享版（默认：是）
 
@@ -71,7 +104,6 @@ slides/
 ├── slide_NN.html      # 结束页
 ├── navigation.js      # 统一的翻页控制器
 ├── merge_slides.py    # 合并为单文件的脚本
-├── scale_slides.py    # 批量调整字号/边距的脚本（可选）
 └── all_slides.html    # 最终合并版（内嵌所有资源）
 ```
 
@@ -79,28 +111,69 @@ slides/
 每页都是一个独立的、零依赖的 HTML 文件：
 - 内联 CSS（不依赖外部样式表）
 - 使用 CSS Variables 统一主题
-- 通过 `.anim-1` ~ `.anim-4` + `@keyframes fadeUp` 实现入场动画
+- **固定 16:9 舞台**：默认模式页面按 `1600px × 900px` 设计，由 `navigation.js` 根据窗口大小整体等比缩放
+- **默认不加动画**（模板中已注释掉 fadeUp，需要时取消注释即可）
 - 固定底部导航条（引用 `navigation.js`）
 - 如果某页需要插入图片，HTML 中先用相对路径引用（如 `src="pdf_page_20.png"`）
+- 默认模式关键布局、字号、间距优先使用基于 `1600×900` 舞台的 `px` 值；窗口适配交给整体缩放，不要让每个元素各自响应
+- 排版使用 3-font 层级系统，详见 `references/design_guide.md` 字体规范
+- 标题区位置固定；标题字号按层级使用 `.h-hero`(96px) / `.h-hero-zh`(72px) / `.h-xl`(48px) / `.h1-zh`(36px) / `.h2-zh`(28px) / `.h3-zh`(22px)
+- 正文使用 `.body-zh`(18px)；导语使用 `.lead`(22px serif)；标签使用 `.kicker`(12px mono)
+- 正文字号阶梯：卡片描述/表单元格 14~16px，段落/要点 17~19px，二级标题 20~24px，页面标题 28~36px，封面标题 44~54px
+- 字号不得为了塞内容任意缩小；内容过多时必须拆页，不得压缩字号、贴边、重叠或溢出
+
+**组件选择（强制）**：
+- 内容页**必须**从 `references/component_catalog.md` 中选择组件编号（T1/T2/T3/C2/C3/C4/FH/FV/BA/ST/QT/IL/KV/TI/IT/PG/LR/EC/DF）
+- 用户未指定时，根据内容类型自动匹配：多行数据→T2，并列模块→C3，流程→FH，对比→BA，指标→ST，案件信息→KV
+- 案件准备或法律分析页面自动匹配：主体/合同/资金/控制关系→LR，证据与待证事实→EC，请求权基础/构成要件/程序判断→DF，争议焦点汇总→T3
+- 不得自行发明新的表格/卡片/流程图样式；如需新增组件，必须先在 `component_catalog.md` 注册并更新画廊
+- 同一页面只使用**一种**内容组件
+- 封面页、过渡页、结束页使用页面级模板（page_skeleton.html 中预定义），不走组件编号
+
+**法律可视化（按需读取）**：
+- 当内容涉及案件准备、法律关系、证据组织、事实时间线、责任路径或法律数据图表时，必须先读 `references/legal_visualization.md`。
+- 先确定本页要回答的问题，再绘图；不得把合同关系、资金流、实际控制和争议事实画成同一种线。
+- 所有关键关系应能够回溯到材料；已确认事实、争议主张和推论必须视觉区分。
+
+**装饰增强（可与任意组件配合）**：
+- `.ghost` — 背景大字装饰：serif-en 450px，opacity 0.04。用于章节编号或英文关键词。放在 `.slide` 内，用 inline style 定位。
+- `.hi` — 内联荧光笔：包裹关键短语，显示半透明高亮底色。颜色自动跟随 `--accent-2` 主题色。
+
+**页面级模板**：封面页、目录页、章节过渡页、总结页、结束页 → 直接复用 `page_skeleton.html` 中的对应结构
 
 ### Step 4：配置 navigation.js
-```javascript
-const total = NN;  // 与实际页数保持一致
-```
+`navigation.js` 会自动检测总页数：
+- **单文件多页模板**：如果当前 HTML 内包含多个 `.slide`，自动在当前文件内切换页面
+- **HTTP 环境**（本地服务器 / 部署）：自动探测 slide 文件数量，无需配置
+- **file:// 环境**（双击打开多文件 slide）：从 `#counter` 元素文本解析，需确保 HTML 中 `1 / 总页数` 的总页数为实际数字
+- `navigation.js` 同时负责默认模式舞台缩放与全屏切换；按 `F` 会优先对当前文档进入/退出全屏
+- 合并后的 `all_slides.html` 会内嵌同一份 `navigation.js`，避免单页预览与正式交付使用两套不同的翻页逻辑
 
 ### Step 5：合并为单文件（默认执行）
 运行 `merge_slides.py`：
 - 使用 **iframe + srcdoc** 隔离每页 CSS，避免 N 份样式互相覆盖
 - **自动将所有本地图片转为 Base64 Data URI 内嵌**
+- 遇到缺失图片、绝对图片路径或外部 CSS/JS/图片依赖时必须中止合并，不得静默交付
 - 输出 `all_slides.html`，实现：
   - 断网可运行
   - 微信/邮件直传
   - 双击即用
 
+同时生成一个审阅编排版（推荐默认执行）：
+```bash
+python3 templates/create_deck_editor.py output/all_slides.html
+```
+- 输出 `output/all_slides_editor.html`
+- 用户双击即可看到页面缩略卡片
+- 支持拖拽换页、删除页面、单页轻编辑、导出新 HTML
+- 导出时自动重排 iframe id、外层总页数和页码
+- 这个文件只用于审阅/编排/轻微文字调整，不替代正式交付文件
+
 ### Step 6：全屏与播放测试
 - 按 `F` 键切换全屏
 - 按 `→` / `←` 翻页
 - 触摸设备支持左右滑动
+- 交付时优先让用户打开 `all_slides.html` 看正式播放效果；如用户需要调页序，再打开 `all_slides_editor.html`
 
 ### Step 7：响应迭代调整
 - 如果用户中途要求修改内容/顺序/样式：
@@ -108,22 +181,146 @@ const total = NN;  // 与实际页数保持一致
   2. 修改对应 `slide_XX.html`
   3. 重新运行 `merge_slides.py` 生成新的 `all_slides.html`
 
-## 四、设计规范
+### Step 8：已生成 HTML 的局部修改协议
+
+当用户直接提供一个已经合并好的 HTML，并要求“删掉某一页”“交换两页位置”“只改某一页几个字”“其他不要动”时，进入**局部手术模式**：
+
+1. **目标 HTML 就是唯一真相源**：只读取并修改用户点名的那个文件；不得从其他 PPT、旧版本、输出目录或备份文件中拼接内容，除非用户明确要求“从某个文件恢复/补回”。
+2. **先解析页面结构再动手**：识别实际页面容器（通常是 `iframe.frame[srcdoc]` 或 `.slide`），列出总页数、目标页位置、目标页摘要，确认操作对象。
+3. **只改必要块**：
+   - 删除页：只删除对应页面容器。
+   - 换页：只交换对应页面容器顺序。
+   - 改字：只替换目标页中的目标文字。
+   - 不重写全局 CSS、不重建导航、不改版式、不顺手优化。
+4. **页码处理要分层**：
+   - 外层导航总页数必须更新，例如 `1 / 37`、`var total=37`。
+   - 页面内部的页脚页码（如 `31 / 37`）如存在且受影响，必须同步检查并修正。
+   - 页面标题里的“第 N 页”如果只是内容标题或历史生成痕迹，不主动改，除非用户要求统一。
+5. **iframe 合并文件的安全做法**：
+   - 保留每个 `srcdoc` 的原内容，只移动/删除外层 iframe 块。
+   - 操作后外层 iframe id 必须连续：`f1`、`f2`、...、`fN`。
+   - 简单导航如果依赖 `document.getElementById("f"+n)`，只更新 `var total` 和外层 `#counter`，不要改成另一套导航逻辑。
+6. **修改后必须复核**：检查页面数量、id 连续性、目标页是否删除/换位成功、可见页码是否匹配当前顺序、`→`/`←`/`Space`/`F` 仍可用。
+
+> 局部手术模式的核心原则：**用户让改哪里，就只改哪里。宁可少动一步，也不要重建整份 PPT。**
+
+### Step 9：交互式编排器（用户自行拖拽调页 + 单页轻编辑）
+
+当用户希望自己调整页序、删页、查看页码、微调某页文字或字号时，可以提供 `templates/deck_editor.html` 作为本地交互式编排器。
+
+**适用场景**：
+- 用户说“我想自己拖动页面调整顺序”
+- 用户需要多次交换页面、删除页面、检查过渡页位置
+- 用户不想每次为了页序变化都让 agent 修改 HTML
+- 用户需要自己改少量错字、删减句子、局部放大/缩小文字
+
+**使用方式**：
+1. 打开 `templates/deck_editor.html`
+2. 选择一个已经合并好的 `all_slides.html` 或类似 iframe 合并文件
+3. 在浏览器里拖拽页面卡片调整顺序，或点击删除
+4. 点击某页“编辑”，在弹窗中直接改文字；选中文字后可调整字号、字体或删除选中内容
+5. 保存本页后导出新的 HTML
+6. 导出时自动：
+   - 重排外层 `iframe.frame`
+   - 重新编号外层 iframe id：`f1...fN`
+   - 更新外层 `#counter`
+   - 更新脚本中的 `total`
+   - 可选更新页面内可见 `x / y` 页码
+
+**边界限制**：
+- 编排器负责“页序、删页、页码”和“单页轻编辑”；轻编辑只适合错字、少量删减、局部字号/字体调整。
+- 不把编排器当完整设计器使用：不要在里面重排复杂版式、重写 CSS、插入复杂图表或大段新内容；这些应回到 Markdown/单页 HTML 重新生成。
+- 默认只支持 `iframe.frame[srcdoc]` 合并结构；其他结构必须先人工确认。
+- 自动修正内部 `x / y` 页码时，可能匹配到正文里的数字斜杠；如页面正文确有类似 `3 / 5` 的业务数字，导出前应关闭自动页码修正或导出后复核。
+- 单页轻编辑会重新序列化被编辑页的 `srcdoc`；未点击“编辑/保存”的页面必须保持原样。
+- 编排器导出的 HTML 是新文件；不要覆盖原文件，除非用户确认。
+
+**更方便的预载方式**：
+```bash
+python3 templates/create_deck_editor.py path/to/deck.html
+```
+生成 `deck_editor.html` 同级的 `deck_editor` 版本（如 `deck_editor.html` 或 `all_slides_editor.html`），用户双击后无需再选择文件，页面卡片会自动加载。
+
+---
+
+## 四、稳定性交付硬约束
+
+### 交付物唯一标准
+- 默认最终交付物只认 `output/all_slides.html`。
+- 除非用户明确要求调试或二次编辑，不要把一组 `slide_XX.html` 当成最终交付。
+- `all_slides.html` 必须能在断网状态下打开、翻页、全屏，并正常显示本地图片。
+
+### 资源与路径限制
+
+- 禁止依赖外部 CSS、外部 JS、CDN 字体或外部图片来完成核心展示。
+- 所有本地图片必须放在 `output/` 或其子目录，并使用相对路径引用。
+- 禁止在 HTML 中写入本机绝对路径，例如 `/Users/...`、`C:\...`。
+- 本地图片可用 `<img src="...">` 或 CSS `url(...)` 引用；`merge_slides.py` 会自动内嵌为 Base64 Data URI。
+- 大图先压缩再引用，避免 `all_slides.html` 过大导致微信、邮件或浏览器打开不稳定。
+- 本地视频默认不内嵌；如需视频，优先使用外部链接或关键帧图片。
+
+### 导航与命名限制
+- 多文件模式必须命名为 `slide_01.html`、`slide_02.html`、...、`slide_NN.html`，页码必须连续。
+- `file://` 双击预览多文件 slide 时，`#counter` 必须写真实总页数，例如 `1 / 12`。
+- 单文件模板可以包含多个 `.slide` 进行预览，`navigation.js` 会在当前文件内切页。
+- 正式交付仍以 `merge_slides.py` 生成的 `all_slides.html` 为准。
+- 对已合并 HTML 做删页、换页、插页时，必须同时检查外层导航总页数、iframe id 连续性、页面内部可见页脚页码；不得只改页面块而漏改页码。
+
+### 版式稳定限制
+- 默认模式按 `1600px × 900px` 固定舞台排版，整体由脚本等比缩放以适配屏幕。
+- 默认模式关键布局优先使用 `px`、`%`、`max-width`；避免用 `vw`/`vh` 控制核心内容尺寸。
+- 标题区位置、标题字号、正文起始位置、正文宽度在同一 deck 中保持统一。
+- 字号阶梯（参考）：封面标题 44~54px，页面标题 28~36px，段落/要点 17~19px，卡片描述 14~16px，页码/注脚 12~13px
+- 页面四周必须保留安全边距；不得让文字贴边、重叠、溢出。
+- 每页最多 `3` 个信息块，每个信息块最多 `3` 条要点；内容过多必须拆页。
+- 不得每页随机更换风格；同一类型页面必须复用同一模板。
+- 交付前必须逐页浏览，不只看首页和结束页；重点检查标题、字号、边距、对齐、溢出、叠页。
+- 默认不加动画；若必须使用，优先用于封面、过渡页或少量强调元素。
+- 不要把多页 CSS 直接拼接到一个页面；合并必须使用 `iframe + srcdoc` 隔离样式。
+- 表格、流程图、代码块必须预留足够宽度，避免投影或合并后被裁切。
+- 如果使用 Reveal.js：优先使用 Reveal 自带 `width/height/margin/minScale/maxScale` 布局；不要在自定义缩放函数里逐个修改所有 `section` 的 `transform/left/top`，否则容易出现多页叠在一起。窗口变化或全屏后调用 `Reveal.layout()` 即可。
+
+### 交付前检查清单
+- 必须运行 `python3 templates/merge_slides.py` 生成最新 `output/all_slides.html`。
+- 必须打开 `output/all_slides.html` 检查：首页、任一内容页、结束页都不是空白页。
+- 必须测试 `→`、`←`、`Space`、`Home`、`End`、`F` 全屏。
+- 如做过删页、换页、插页，必须检查总页数、外层 `#counter`、脚本 `total`、iframe id、页面内部所有可见 `x / y` 页码。
+- 必须逐页检查标题位置、字号、边距、色彩、对齐方式是否统一。
+- 必须逐页检查内容是否溢出、贴边、重叠，主信息是否清楚。
+- 必须确认多页之间不会叠页：跳转到中间页、末页后，只能看到当前页内容。
+- 必须确认本地图片已内嵌：`all_slides.html` 中不应残留 `.png`、`.jpg`、`.jpeg`、`.svg`、`.gif`、`.webp` 的相对路径。
+- 必须检查没有本机绝对路径、没有必需的外部 CSS/JS/图片依赖。
+- 如出现文字溢出、图片丢失、翻页失败，不交付；先修复后重新合并。
+
+---
+
+## 五、设计规范
 
 ### 色彩变量
+
+使用时以 `page_skeleton.html` 的 `:root` 定义为准。
+
+如用户提出"换个颜色""高级一点""科技风""政务风"等需求，先查 `references/style_presets.md`，选择一套预设后再映射到当前模板变量。不要临时随机配色。
+
+**通用默认（page_skeleton.html）**
 ```css
 :root {
   --bg:         #ffffff;      /* 背景色 */
   --surface:    #f8f9fa;      /* 卡片背景 */
   --accent:     #1a2a4a;      /* 主色：深海军蓝 */
-  --accent-2:   #c9a227;      /* 点缀色：香槟金 */
+  --accent-2:   #c9a227;      /* 点缀色：香槟金（高冲击强调） */
+  --accent-3:   #3E8FD8;      /* 辅助色：科技蓝（温和强调、图表、卡片边框） */
   --text:       #2c3e50;      /* 正文 */
   --text-muted: #6c757d;      /* 次要文字 */
   --border:     #e2e8f0;      /* 边框 */
 }
 ```
+> 三色分工：`--accent` 主色（标题、深色背景），`--accent-2` 金色（关键词高亮、图标点缀、分隔线），`--accent-3` 蓝色（卡片边框、流程节点、次要强调）。金色留给最重要的信息，蓝色做温和分层。
+
+新增风格模板时，在模板文件的 `:root` 中定义自己的色彩变量即可，SKILL.md 无需同步修改。
 
 ### 页面类型与版式
+
 | 类型 | 特征 | 典型页 |
 |------|------|--------|
 | 深色封面页 | `#0d1b2a` 背景，白色大字，香槟金点缀 | 封面、结束页 |
@@ -131,205 +328,98 @@ const total = NN;  // 与实际页数保持一致
 | 内容页 | 白色/浅灰背景，卡片/表格/流程图 | 正文页 |
 | 代码页 | 深色代码框 + 浅色说明 | 技术揭秘页 |
 
-### 动画规范
-- 入场动画统一使用 `fadeUp`
--  stagger 延迟：`anim-1` (0s) → `anim-2` (0.1s) → `anim-3` (0.2s)
-- 只有 `.slide.active` 才触发动画
+### 动画与边距
 
-### 屏占比与留白
-- 内容 `max-width` 建议 `1400px ~ 1900px`
-- 页边距使用 `vw` 单位，保持响应式
-- 留白是一种高级感，不堆砌文字
+详见 `references/design_guide.md`（动画 stagger 节奏、字号层级、安全边距等）。
 
-## 五、代码模板
+---
+
+## 六、出品原则：减少 AI 痕迹
+
+整体把控三点，PPT 就不会像机器批量生成的：
+
+1. **模板复用** — 同一类型页面复用同一模板；可以在固定模板内做轻微变化，但不要每页随机新建版式
+2. **多用真实素材** — 放真实照片/截图/数据图表，少用色块占位；文字用关键词，不写长句
+3. **配色克制** — 一套主色 + 一套点缀色，不要每页换色；安全边距和信息层级优先，不堆砌
+
+---
+
+## 七、代码模板
 
 ### 单页 HTML 骨架
-```html
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>页面标题</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --accent: #1a2a4a;
-      --accent-2: #c9a227;
-      --text-muted: #6c757d;
-    }
-    html, body {
-      width: 100%; height: 100%;
-      background: #ffffff;
-      color: var(--text);
-      font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      overflow: hidden;
-    }
-    .slide {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 2vw 4vw;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .slide.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .slide.active .anim-1 { animation: fadeUp 0.5s ease 0.0s both; }
-    .slide.active .anim-2 { animation: fadeUp 0.5s ease 0.1s both; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    /* 进度条 */
-    #progress {
-      position: fixed;
-      top: 0; left: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      z-index: 100;
-    }
-    /* 幻灯片编号 */
-    #slide-num {
-      position: fixed;
-      bottom: 28px; left: 32px;
-      font-size: 12px;
-      color: var(--text-muted);
-      z-index: 100;
-    }
-    /* 导航 */
-    #nav {
-      position: fixed;
-      bottom: 28px; right: 32px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      z-index: 100;
-    }
-    #nav button {
-      width: 40px; height: 40px;
-      background: rgba(26,42,74,0.06);
-      border: 1px solid var(--border);
-      color: var(--accent);
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 20px;
-    }
-    #counter {
-      font-size: 13px;
-      color: var(--text-muted);
-      min-width: 50px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div id="progress"></div>
-  <div id="slide-num">01</div>
+- **通用骨架**：`templates/page_skeleton.html`（深海军蓝 + 香槟金风格）
 
-  <div class="slide active" id="s0">
-    <!-- 页面内容 -->
-  </div>
-
-  <div id="nav">
-    <button onclick="prev()" title="上一张">‹</button>
-    <span id="counter">1 / N</span>
-    <button onclick="next()" title="下一张">›</button>
-  </div>
-
-  <script src="navigation.js"></script>
-</body>
-</html>
-```
+### 风格预设库
+- `references/style_presets.md`：包含 12 套可复用视觉方向（墨绿金章、象牙纸质、冷灰科技、深蓝咨询、暖橙增长、黑金发布会、青绿医疗、红蓝政务、数据仪表盘、清新科普教学、橙白消费科技、墨水经典）
 
 ### navigation.js 模板
-```javascript
-(function() {
-  const match = location.pathname.match(/slide_(\d+)\.html$/);
-  const current = match ? parseInt(match[1], 10) : 1;
-  const total = NN;  // ← 修改为实际总页数
+参考 `templates/navigation.js`（支持单文件内切页、HTTP 多文件页数探测、默认模式 1600×900 舞台缩放、`F` 全屏切换）
 
-  function updateUI() {
-    const counter = document.getElementById('counter');
-    const progress = document.getElementById('progress');
-    const slideNum = document.getElementById('slide-num');
-    if (counter) counter.textContent = `${current} / ${total}`;
-    if (progress) progress.style.width = `${(current / total) * 100}%`;
-    if (slideNum) slideNum.textContent = String(current).padStart(2, '0');
-  }
+### 图片添加（复制改路径即可）
 
-  function go(n) {
-    if (n < 1 || n > total) return;
-    const filename = `slide_${String(n).padStart(2, '0')}.html`;
-    location.href = filename;
-  }
+```html
+<!-- 圆角卡片图 -->
+<img src="photo.jpg" alt="描述" style="width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.1)">
 
-  window.next = function() { go(current + 1); };
-  window.prev = function() { go(current - 1); };
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Space') {
-      e.preventDefault(); window.next();
-    }
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault(); window.prev();
-    }
-    if (e.key === 'Home') { e.preventDefault(); go(1); }
-    if (e.key === 'End')  { e.preventDefault(); go(total); }
-    if (e.key === 'f' || e.key === 'F') {
-      e.preventDefault();
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(()=>{});
-      } else {
-        document.exitFullscreen().catch(()=>{});
-      }
-    }
-  });
-
-  let touchStartX = 0;
-  document.addEventListener('touchstart', e => {
-    touchStartX = e.touches[0].clientX;
-  });
-  document.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (dx < -50) window.next();
-    if (dx > 50) window.prev();
-  });
-
-  updateUI();
-})();
+<!-- 背景图 + 渐变遮罩 + 叠加文字 -->
+<div style="position:relative;width:100%;height:100%">
+  <div style="position:absolute;inset:0;background:url('bg.jpg') center/cover"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.6),rgba(0,0,0,0.2))"></div>
+  <h1 style="position:relative;z-index:1;color:#fff;font-size:48px">叠加在图上的标题</h1>
+</div>
 ```
 
-## 六、关键经验
+> 图片放在 `output/` 目录下，`merge_slides.py` 会自动转为 Base64 内嵌。
+
+### 视频添加
+
+```html
+<!-- 本地视频（合并后内嵌，文件会很大） -->
+<video src="demo.mp4" controls style="width:100%;border-radius:8px"></video>
+
+<!-- 外部视频链接（推荐，不增大文件） -->
+<iframe src="https://www.bilibili.com/video/BVxxxx" style="width:100%;height:60%;border:none;border-radius:8px"></iframe>
+```
+
+> ⚠️ 本地视频会大幅增大 `all_slides.html`，建议用外部链接或截取关键帧为图片。
+
+---
+
+## 八、关键经验
 
 1. **一切始于 Markdown**：MD 文档是唯一真相源，任何迭代都先改 MD 再同步 HTML
 2. **零依赖**：每页 HTML 自带 CSS，不依赖 Tailwind / Bootstrap，拷到任何浏览器都能打开
 3. **命名规范**：统一用 `slide_01.html` ~ `slide_NN.html`，`navigation.js` 才能自动识别页码
 4. **单页隔离**：合并时必须用 **iframe + srcdoc**，不要用简单的 CSS 拼接，否则多页样式会互相覆盖
 5. **图片必须内嵌**：分享的 `all_slides.html` 必须将本地图片转为 Base64 Data URI，否则接收方看不到图
-6. **屏占比**：按主流 16:9 投影尺寸设计，内容区宽度尽量放宽到 `1600px+`，避免中间一小块
-7. **迭代友好**：保留 `merge_slides.py` 和 `scale_slides.py`，便于随时批量重生成或调整字号
+6. **版式稳定**：按主流 16:9 投影尺寸设计，标题区、正文区、安全边距在同一 deck 中保持一致
+7. **迭代友好**：保留 `merge_slides.py` 与 Markdown 源文档；字号和边距只按目标页局部调整，避免全局替换破坏版式
 
-## 七、文件结构（标准 Skill 树）
+---
+
+## 九、文件结构（标准 Skill 树）
 
 ```
 html-ppt/
-├── SKILL.md              ← 本文件
+├── SKILL.md                                    ← 本文件
 ├── references/
-│   └── design_guide.md   ← 用户提供的视觉规范
+│   ├── design_guide.md                         ← 通用视觉规范
+│   ├── style_presets.md                        ← 12 套风格预设库
+│   ├── legal_visualization.md                  ← 法律可视化绘制规范（LR/EC/DF 语义）
+│   └── component_catalog.md                    ← 19 个内容组件 + 2 个装饰增强，含编号/CSS类名/使用说明
 ├── templates/
-│   ├── page_skeleton.html
-│   ├── navigation.js
-│   ├── merge_slides.py
-│   └── scale_slides.py
-├── source.md             ← 用户原始/共建的 Markdown 文档
-└── output/
+│   ├── page_skeleton.html                      ← 通用模板骨架（含组件 CSS，组件样式以此为准）
+│   ├── component_gallery.html                  ← 组件画廊（可视化预览全部组件）
+│   ├── navigation.js                           ← 翻页控制器
+│   ├── merge_slides.py                         ← 合并为 all_slides.html
+│   ├── deck_editor.html                        ← 交互式编排器（拖拽调序/删页/单页轻编辑）
+│   ├── create_deck_editor.py                   ← 为指定 deck 生成预载编排器
+│   └── quick_ref.md                            ← 速查卡
+└── output/                                     ← 生成时的工作目录
     ├── slide_01.html
     ├── ...
-    └── all_slides.html   ← 最终交付物（内嵌所有资源）
+    ├── all_slides.html                         ← 最终交付物
+    └── all_slides_editor.html                  ← 审阅编排版
 ```
+
+---

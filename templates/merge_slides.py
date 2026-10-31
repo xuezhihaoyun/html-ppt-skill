@@ -1,217 +1,196 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-将所有 slide_*.html 合并成一个独立的 all_slides.html。
-使用 iframe + srcdoc 实现每页 CSS 完全隔离，自动将本地图片转为 Base64 内嵌。
+merge_slides.py — 将 slide_*.html 合并为一个 all_slides.html
+- 使用 iframe + srcdoc 隔离每页 CSS
+- 自动将本地图片转为 Base64 Data URI 内嵌
 """
 
 import base64
+import mimetypes
 import re
 from pathlib import Path
 
 SLIDES_DIR = Path(__file__).parent.parent / "output"
 OUTPUT = SLIDES_DIR / "all_slides.html"
+NAVIGATION_SCRIPT = Path(__file__).with_name("navigation.js")
+IMAGE_SUFFIX = re.compile(r"\.(?:png|jpe?g|svg|gif|webp|avif)(?:[?#].*)?$", re.I)
 
 
 def natural_sort_key(p: Path):
-    m = re.search(r'(\d+)', p.name)
-    return (int(m.group(1)), p.name) if m else (0, p.name)
+    """按文件名中的数字排序"""
+    m = re.search(r"(\d+)", p.name)
+    return int(m.group(1)) if m else 0
 
 
 def js_escape(s: str) -> str:
-    return s.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n').replace('\r', '')
+    """转义 HTML 内容，使其可以安全嵌入 srcdoc 属性。
+    注意：HTML 实体（&amp; &lt; &gt; 等）中的 & 不能再次转义，
+    否则会出现 &amp;amp; 的双重转义。只处理：
+    - &quot; → 防止 srcdoc 属性被截断
+    - 反引号/模板语法 → 防止 JS 模板字符串出错
+    - 换行符 → 防止 srcdoc 属性解析异常
+    """
+    return (
+        s.replace("&quot;", "&amp;quot;")
+         .replace("\\", "\\\\")
+         .replace("`", "\\`")
+         .replace("${", "\\${")
+         .replace('"', "&quot;")
+         .replace("\r\n", "\n")
+         .replace("\r", "\n")
+         .replace("\n", "&#10;")
+    )
 
 
-def get_img_data_uri(filename: str) -> str:
-    fpath = SLIDES_DIR / filename
-    if not fpath.exists():
-        return filename
-    ext = fpath.suffix.lower().replace('.', '')
-    mime = 'image/png' if ext == 'png' else 'image/jpeg' if ext in ('jpg', 'jpeg') else 'image/svg+xml'
-    b64 = base64.b64encode(fpath.read_bytes()).decode('ascii')
-    return f"data:{mime};base64,{b64}"
+def is_image_reference(src: str) -> bool:
+    return bool(IMAGE_SUFFIX.search(src.strip()))
+
+
+def get_asset_data_uri(src: str, base_dir: Path) -> str:
+    """将一个受控目录内的本地图片转为 data URI。"""
+    clean_src = re.sub(r"[?#].*$", "", src.strip())
+    if clean_src.startswith(("http://", "https://", "//")):
+        raise ValueError(f"不允许外部图片依赖: {src}")
+    if clean_src.startswith(("/", "file:", "~")) or re.match(r"^[A-Za-z]:[\\/]", clean_src):
+        raise ValueError(f"不允许绝对图片路径: {src}")
+
+    asset_path = (base_dir / clean_src).resolve()
+    try:
+        asset_path.relative_to(base_dir.resolve())
+    except ValueError as exc:
+        raise ValueError(f"图片路径越出页面目录: {src}") from exc
+    if not asset_path.is_file():
+        raise FileNotFoundError(f"找不到本地图片: {asset_path}")
+
+    mime = mimetypes.guess_type(asset_path.name)[0] or "application/octet-stream"
+    data = base64.b64encode(asset_path.read_bytes()).decode()
+    return f"data:{mime};base64,{data}"
+
+
+def inline_local_assets(html: str, base_dir: Path) -> str:
+    """内嵌本地图片；任何缺图、外链或绝对路径都中止合并。"""
+    problems = []
+
+    def replace_src(m):
+        quote, src = m.group(1), m.group(2)
+        if not is_image_reference(src) or src.strip().startswith("data:"):
+            return m.group(0)
+        try:
+            return f'src={quote}{get_asset_data_uri(src, base_dir)}{quote}'
+        except (FileNotFoundError, ValueError) as exc:
+            problems.append(str(exc))
+            return m.group(0)
+
+    def replace_url(m):
+        quote = m.group(1) or ""
+        src = m.group(2).strip()
+        if not is_image_reference(src) or src.startswith("data:"):
+            return m.group(0)
+        try:
+            return f"url({quote}{get_asset_data_uri(src, base_dir)}{quote})"
+        except (FileNotFoundError, ValueError) as exc:
+            problems.append(str(exc))
+            return m.group(0)
+
+    html = re.sub(r'src=(["\'])([^"\']+)\1', replace_src, html)
+    html = re.sub(r'url\(\s*(["\']?)([^"\')]+)\1\s*\)', replace_url, html)
+    if problems:
+        raise ValueError("\n".join(sorted(set(problems))))
+    return html
+
+
+def assert_no_external_dependencies(html: str, source_name: str) -> None:
+    """阻止会破坏离线交付的外部 CSS、JS 和字体导入。"""
+    patterns = [
+        r"@import\s+(?:url\()?['\"]?(?:https?:)?//",
+        r"<script\b[^>]*\bsrc=['\"](?:https?:)?//",
+        r"<link\b[^>]*\bhref=['\"](?:https?:)?//",
+    ]
+    if any(re.search(pattern, html, re.I) for pattern in patterns):
+        raise ValueError(f"{source_name} 含外部 CSS、JS 或字体依赖，无法离线交付")
 
 
 def build():
-    slide_files = sorted(SLIDES_DIR.glob("slide_*.html"), key=natural_sort_key)
-    slide_htmls = []
+    files = sorted(SLIDES_DIR.glob("slide_*.html"), key=natural_sort_key)
+    if not files:
+        print("❌ 未找到 slide_*.html 文件"); return
 
-    for fpath in slide_files:
+    # 检查页码连续性
+    nums = [natural_sort_key(f) for f in files]
+    expected = list(range(1, len(nums) + 1))
+    if nums != expected:
+        missing = [n for n in range(1, max(nums) + 1) if n not in nums]
+        if missing:
+            print(f"⚠️  检测到缺失页码: {missing}，合并可能不完整")
+        if nums[0] != 1:
+            print(f"⚠️  首页不是 slide_01.html（实际从 slide_{nums[0]:02d}.html 开始）")
+
+    slides = []
+    for fpath in files:
         html = fpath.read_text(encoding="utf-8")
+        assert_no_external_dependencies(html, fpath.name)
 
-        # 移除 navigation.js
-        html = re.sub(r'<script\s+src="navigation\.js"\s*>\s*</script>', '', html)
+        # 移除 navigation.js 引用
+        html = re.sub(r'<script\s+src="navigation\.js"></script>', '', html)
 
-        # 移除 #nav 块
-        html = re.sub(r'<div\s+id="nav"[^>]*>.*?</div>\s*', '', html, flags=re.DOTALL)
+        # 移除 #nav 导航块
+        html = re.sub(r'<div id="nav">.*?</div>', '', html, flags=re.DOTALL)
 
-        # 将所有本地图片引用替换为 Base64 Data URI
-        for m in re.finditer(r'src="([^"]+\.(?:png|jpg|jpeg|svg|gif))"', html):
-            filename = m.group(1)
-            data_uri = get_img_data_uri(filename)
-            html = html.replace(f'src="{filename}"', f'src="{data_uri}"')
+        # 移除 #slide-num 页码（合并后由外层统一显示）
+        html = re.sub(r'<div id="slide-num">.*?</div>', '', html, flags=re.DOTALL)
 
-        slide_htmls.append(html.strip())
+        # 替换本地图片为 Base64，包括 <img src> 和 CSS background url(...)
+        try:
+            html = inline_local_assets(html, fpath.parent)
+        except (FileNotFoundError, ValueError) as exc:
+            raise RuntimeError(f"{fpath.name} 资源校验失败：{exc}") from exc
 
-    total = len(slide_htmls)
-    escaped_slides = ',\n'.join([f"  '{js_escape(h)}'" for h in slide_htmls])
+        slides.append(html)
 
-    merged = f'''<!DOCTYPE html>
+    total = len(slides)
+    navigation_script = NAVIGATION_SCRIPT.read_text(encoding="utf-8")
+    iframe_blocks = []
+    for i, s in enumerate(slides, 1):
+        escaped = js_escape(s)
+        iframe_blocks.append(
+            f'<iframe id="f{i}" class="frame" srcdoc="{escaped}" '
+            f'allow="fullscreen" allowfullscreen style="display:none"></iframe>'
+        )
+
+    merged = f"""<!DOCTYPE html>
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>从工具到思维——法律人的AI原生认知</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>幻灯片</title>
 <style>
-*, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-html, body {{ width: 100%; height: 100%; overflow: hidden; font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; }}
-iframe.slide-frame {{ position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: none; background: #fff; }}
-iframe.slide-frame.active {{ display: block; }}
-#progress {{
-  position: fixed;
-  top: 0; left: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #1a2a4a, #c9a227);
-  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
-  z-index: 100;
-}}
-#slide-num {{
-  position: fixed;
-  bottom: 28px; left: 32px;
-  font-size: 12px;
-  color: #fff;
-  background: rgba(0,0,0,0.35);
-  padding: 4px 10px;
-  border-radius: 6px;
-  z-index: 100;
-}}
-#nav {{
-  position: fixed;
-  bottom: 20px; right: 24px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 100;
-  background: rgba(0,0,0,0.35);
-  padding: 6px 10px;
-  border-radius: 10px;
-}}
-#nav button {{
-  width: 40px; height: 40px;
-  background: rgba(255,255,255,0.9);
-  border: none;
-  color: #1a2a4a;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 20px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.2s;
-}}
-#nav button:hover {{ background: #fff; }}
-#counter {{
-  font-size: 13px;
-  color: #fff;
-  min-width: 50px;
-  text-align: center;
-}}
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+:root{{--deck-width:1600px;--deck-height:900px;--deck-scale:1}}
+html,body{{width:100%;height:100%;overflow:hidden;background:#000}}
+.frame{{position:absolute;top:50%;left:50%;width:var(--deck-width);height:var(--deck-height);border:none;background:#fff;transform:translate(-50%,-50%) scale(var(--deck-scale));transform-origin:center center}}
+#progress{{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#1a2a4a,#c9a227);z-index:100}}
+#nav{{position:fixed;bottom:28px;right:32px;display:flex;align-items:center;gap:10px;z-index:100}}
+#nav button{{width:40px;height:40px;background:rgba(26,42,74,0.06);border:1px solid #e2e8f0;color:#1a2a4a;border-radius:10px;cursor:pointer;font-size:20px}}
+#counter{{font-size:13px;color:#6c757d;min-width:50px;text-align:center}}
 </style>
 </head>
 <body>
-
 <div id="progress"></div>
-<div id="slide-num">01</div>
-<div id="frames"></div>
-
+{''.join(iframe_blocks)}
 <div id="nav">
-  <button onclick="prev()" title="上一张">‹</button>
-  <span id="counter">1 / {total}</span>
-  <button onclick="next()" title="下一张">›</button>
+<button onclick="prev()" title="上一张">‹</button>
+<span id="counter">1 / {total}</span>
+<button onclick="next()" title="下一张">›</button>
 </div>
-
 <script>
-(function() {{
-  const total = {total};
-  let current = 1;
-  const slideHtmls = [
-{escaped_slides}
-  ];
-
-  const container = document.getElementById('frames');
-  const iframes = [];
-
-  slideHtmls.forEach((html) => {{
-    const iframe = document.createElement('iframe');
-    iframe.className = 'slide-frame';
-    iframe.srcdoc = html;
-    container.appendChild(iframe);
-    iframes.push(iframe);
-  }});
-
-  function updateUI() {{
-    document.getElementById('counter').textContent = current + ' / ' + total;
-    document.getElementById('progress').style.width = (current / total * 100) + '%';
-    document.getElementById('slide-num').textContent = String(current).padStart(2, '0');
-
-    iframes.forEach((iframe, i) => {{
-      const slide = iframe.contentDocument && iframe.contentDocument.querySelector('.slide');
-      if (i + 1 === current) {{
-        iframe.classList.add('active');
-        if (slide) {{
-          slide.classList.remove('active');
-          void slide.offsetWidth;
-          slide.classList.add('active');
-        }}
-      }} else {{
-        iframe.classList.remove('active');
-        if (slide) slide.classList.remove('active');
-      }}
-    }});
-  }}
-
-  window.next = function() {{ if (current < total) {{ current++; updateUI(); }} }};
-  window.prev = function() {{ if (current > 1) {{ current--; updateUI(); }} }};
-
-  document.addEventListener('keydown', e => {{
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Space') {{
-      e.preventDefault(); window.next();
-    }}
-    if (e.key === 'ArrowLeft') {{
-      e.preventDefault(); window.prev();
-    }}
-    if (e.key === 'Home') {{ e.preventDefault(); current = 1; updateUI(); }}
-    if (e.key === 'End')  {{ e.preventDefault(); current = total; updateUI(); }}
-    if (e.key === 'f' || e.key === 'F') {{
-      e.preventDefault();
-      if (!document.fullscreenElement) {{
-        document.documentElement.requestFullscreen().catch(()=>{{}});
-      }} else {{
-        document.exitFullscreen().catch(()=>{{}});
-      }}
-    }}
-  }});
-
-  let touchStartX = 0;
-  document.addEventListener('touchstart', e => {{
-    touchStartX = e.touches[0].clientX;
-  }});
-  document.addEventListener('touchend', e => {{
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (dx < -50) window.next();
-    if (dx > 50) window.prev();
-  }});
-
-  iframes[0].addEventListener('load', updateUI);
-  setTimeout(updateUI, 50);
-}})();
+{navigation_script}
 </script>
-
 </body>
-</html>
-'''
+</html>"""
 
     OUTPUT.write_text(merged, encoding="utf-8")
     print(f"✅ 已合并 {total} 页幻灯片到: {OUTPUT}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build()

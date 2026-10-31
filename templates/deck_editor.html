@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML PPT 局部编排器</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #172033;
+    background: #f4f1ea;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    background: rgba(255,255,255,.92);
+    border-bottom: 1px solid #ddd6c8;
+    backdrop-filter: blur(10px);
+  }
+  h1 { margin: 0; font-size: 20px; color: #1a2a4a; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button, .file-label {
+    border: 1px solid #c9b36b;
+    background: #fff;
+    color: #1a2a4a;
+    border-radius: 10px;
+    padding: 9px 13px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button.primary {
+    background: #1a2a4a;
+    color: #fff;
+    border-color: #1a2a4a;
+  }
+  input[type="file"] { display: none; }
+  label.check { font-size: 13px; color: #5b6475; display: flex; gap: 6px; align-items: center; }
+  main { padding: 20px; }
+  .hint {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-left: 4px solid #c9a227;
+    background: #fffaf0;
+    border-radius: 8px;
+    color: #5b6475;
+    font-size: 14px;
+  }
+  #deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e4ded2;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(26,42,74,.08);
+  }
+  .card.dragging { opacity: .45; outline: 2px dashed #c9a227; }
+  .card.drop-target { outline: 2px solid #1a2a4a; outline-offset: 2px; }
+  .thumb {
+    height: 150px;
+    background: #111827;
+    overflow: hidden;
+    border-bottom: 1px solid #e4ded2;
+  }
+  .thumb iframe {
+    width: 1600px;
+    height: 900px;
+    border: 0;
+    transform: scale(.1625);
+    transform-origin: top left;
+    pointer-events: none;
+    background: #fff;
+  }
+  .meta {
+    padding: 12px 14px 14px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+  }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .idx {
+    min-width: 36px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #f3ead0;
+    color: #8b7019;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .title {
+    margin: 10px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #374151;
+    min-height: 42px;
+  }
+  .danger {
+    border-color: #e7b4aa;
+    color: #b42318;
+  }
+  button:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+  }
+  .empty {
+    text-align: center;
+    color: #667085;
+    padding: 64px 20px;
+  }
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    background: rgba(15, 23, 42, .72);
+    padding: 22px;
+  }
+  .modal.open { display: grid; grid-template-rows: auto 1fr; gap: 12px; }
+  .editbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.95);
+    box-shadow: 0 12px 32px rgba(0,0,0,.18);
+  }
+  .editbar .left, .editbar .right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .editbar select {
+    border: 1px solid #c9b36b;
+    border-radius: 10px;
+    padding: 9px 10px;
+    color: #1a2a4a;
+    background: #fff;
+  }
+  .editstage {
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: #111827;
+    overflow: auto;
+  }
+  #editFrame {
+    width: min(96vw, 1600px);
+    aspect-ratio: 16 / 9;
+    height: auto;
+    border: 0;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(0,0,0,.32);
+  }
+  .small-note { color: #667085; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>HTML PPT 局部编排器</h1>
+  <div class="toolbar">
+    <label class="file-label">
+      选择 HTML
+      <input id="file" type="file" accept=".html,.htm">
+    </label>
+    <label class="check">
+      <input id="fixPageNums" type="checkbox">
+      导出时自动修正内部 x / y 页码
+    </label>
+    <button id="undoBtn" disabled>撤销上一步</button>
+    <button id="exportBtn" class="primary" disabled>导出新 HTML</button>
+  </div>
+</header>
+<main>
+  <p class="hint">拖拽卡片或点前移/后移可调整顺序；点“编辑”可直接修改某页文字、字号、字体和删减内容；页码修正默认关闭，只在页面页脚确有错误时再勾选。</p>
+  <div id="deck"><div class="empty">请选择一个合并后的 HTML PPT 文件。</div></div>
+</main>
+<section id="editModal" class="modal" aria-hidden="true">
+  <div class="editbar">
+    <div class="left">
+      <strong id="editTitle">编辑页面</strong>
+      <span class="small-note">直接点击页面文字修改；选中文字后可调格式。</span>
+    </div>
+    <div class="right">
+      <button id="fontMinus">字号-</button>
+      <button id="fontPlus">字号+</button>
+      <select id="fontFamily">
+        <option value="">换字体</option>
+        <option value="'Microsoft YaHei','PingFang SC',sans-serif">微软雅黑 / 苹方</option>
+        <option value="'Songti SC','SimSun',serif">宋体</option>
+        <option value="'Kaiti SC','KaiTi',serif">楷体</option>
+        <option value="Georgia,'Times New Roman',serif">Georgia</option>
+        <option value="Arial,Helvetica,sans-serif">Arial</option>
+      </select>
+      <button id="deleteSelection" class="danger">删除选中</button>
+      <button id="cancelEdit">取消</button>
+      <button id="saveEdit" class="primary">保存本页</button>
+    </div>
+  </div>
+  <div class="editstage"><iframe id="editFrame"></iframe></div>
+</section>
+<script>
+(function () {
+  var sourceText = "";
+  var fileName = "edited_deck.html";
+  var doc = null;
+  var slides = [];
+  var deck = document.getElementById("deck");
+  var file = document.getElementById("file");
+  var exportBtn = document.getElementById("exportBtn");
+  var undoBtn = document.getElementById("undoBtn");
+  var fixPageNums = document.getElementById("fixPageNums");
+  var editModal = document.getElementById("editModal");
+  var editFrame = document.getElementById("editFrame");
+  var editTitle = document.getElementById("editTitle");
+  var fontMinus = document.getElementById("fontMinus");
+  var fontPlus = document.getElementById("fontPlus");
+  var fontFamily = document.getElementById("fontFamily");
+  var deleteSelection = document.getElementById("deleteSelection");
+  var cancelEdit = document.getElementById("cancelEdit");
+  var saveEdit = document.getElementById("saveEdit");
+  var history = [];
+  var editingIndex = -1;
+  var draggingIndex = null;
+
+  function cloneSlides(list) {
+    return list.map(function (slide) {
+      return { srcdoc: slide.srcdoc };
+    });
+  }
+
+  function remember() {
+    history.push(cloneSlides(slides));
+    if (history.length > 30) history.shift();
+    undoBtn.disabled = history.length === 0;
+  }
+
+  function clearDropTargets() {
+    deck.querySelectorAll(".drop-target").forEach(function (card) {
+      card.classList.remove("drop-target");
+    });
+  }
+
+  function undo() {
+    if (!history.length) return;
+    slides = history.pop();
+    undoBtn.disabled = history.length === 0;
+    render();
+  }
+
+  function textFromHtml(html) {
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, " ");
+    return (tmp.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function getEditDoc() {
+    return editFrame.contentDocument || (editFrame.contentWindow && editFrame.contentWindow.document);
+  }
+
+  function openEditor(index) {
+    editingIndex = index;
+    editTitle.textContent = "编辑第 " + (index + 1) + " 页";
+    editFrame.srcdoc = slides[index].srcdoc;
+    editModal.classList.add("open");
+    editModal.setAttribute("aria-hidden", "false");
+    editFrame.onload = function () {
+      var doc = getEditDoc();
+      if (!doc) return;
+      doc.designMode = "on";
+      try {
+        doc.execCommand("styleWithCSS", false, true);
+      } catch (e) {}
+      doc.body && doc.body.focus();
+    };
+  }
+
+  function closeEditor() {
+    editingIndex = -1;
+    editModal.classList.remove("open");
+    editModal.setAttribute("aria-hidden", "true");
+    editFrame.removeAttribute("srcdoc");
+    editFrame.onload = null;
+  }
+
+  function saveCurrentEdit() {
+    var doc = getEditDoc();
+    if (editingIndex < 0 || !doc || !doc.documentElement) return;
+    remember();
+    try { doc.designMode = "off"; } catch (e) {}
+    slides[editingIndex].srcdoc = "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+    closeEditor();
+    render();
+  }
+
+  function editCommand(command, value) {
+    var doc = getEditDoc();
+    if (!doc) return;
+    editFrame.contentWindow.focus();
+    try {
+      doc.execCommand(command, false, value || null);
+    } catch (e) {}
+  }
+
+  function adjustFontSize(delta) {
+    var doc = getEditDoc();
+    if (!doc) return;
+    editFrame.contentWindow.focus();
+    var sel = doc.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      editCommand("fontSize", delta > 0 ? "5" : "3");
+      return;
+    }
+    var range = sel.getRangeAt(0);
+    var span = doc.createElement("span");
+    span.style.fontSize = delta > 0 ? "1.12em" : ".9em";
+    try {
+      range.surroundContents(span);
+    } catch (e) {
+      editCommand("fontSize", delta > 0 ? "5" : "3");
+    }
+  }
+
+  function render() {
+    deck.innerHTML = "";
+    if (!slides.length) {
+      deck.innerHTML = '<div class="empty">未找到 iframe.frame[srcdoc] 页面。</div>';
+      exportBtn.disabled = true;
+      return;
+    }
+    exportBtn.disabled = false;
+    slides.forEach(function (slide, index) {
+      var card = document.createElement("div");
+      card.className = "card";
+      card.draggable = true;
+      card.dataset.index = index;
+      card.innerHTML =
+        '<div class="thumb"><iframe></iframe></div>' +
+        '<div class="meta">' +
+        '<div class="row"><span class="idx">' + (index + 1) + '</span><div class="actions"><button class="edit">编辑</button><button class="up">前移</button><button class="down">后移</button><button class="danger">删除</button></div></div>' +
+        '<p class="title"></p>' +
+        '</div>';
+      card.querySelector("iframe").srcdoc = slide.srcdoc;
+      card.querySelector(".title").textContent = textFromHtml(slide.srcdoc).slice(0, 90) || "空白页";
+      card.querySelector(".edit").addEventListener("click", function () {
+        openEditor(index);
+      });
+      card.querySelector(".danger").addEventListener("click", function () {
+        remember();
+        slides.splice(index, 1);
+        render();
+      });
+      card.querySelector(".up").disabled = index === 0;
+      card.querySelector(".down").disabled = index === slides.length - 1;
+      card.querySelector(".up").addEventListener("click", function () {
+        if (index <= 0) return;
+        remember();
+        var moved = slides.splice(index, 1)[0];
+        slides.splice(index - 1, 0, moved);
+        render();
+      });
+      card.querySelector(".down").addEventListener("click", function () {
+        if (index >= slides.length - 1) return;
+        remember();
+        var moved = slides.splice(index, 1)[0];
+        slides.splice(index + 1, 0, moved);
+        render();
+      });
+      card.addEventListener("dragstart", function (event) {
+        draggingIndex = index;
+        card.classList.add("dragging");
+        if (event.dataTransfer) {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", String(index));
+        }
+      });
+      card.addEventListener("dragend", function () {
+        card.classList.remove("dragging");
+        draggingIndex = null;
+        clearDropTargets();
+      });
+      card.addEventListener("dragover", function (event) {
+        event.preventDefault();
+        if (draggingIndex === null || draggingIndex === index) return;
+        if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+        clearDropTargets();
+        card.classList.add("drop-target");
+      });
+      card.addEventListener("dragleave", function () {
+        card.classList.remove("drop-target");
+      });
+      card.addEventListener("drop", function (event) {
+        event.preventDefault();
+        card.classList.remove("drop-target");
+        if (draggingIndex === null || draggingIndex === index) return;
+
+        var from = draggingIndex;
+        var insertAt = index;
+        var bounds = card.getBoundingClientRect();
+        if (event.clientY > bounds.top + bounds.height / 2) insertAt += 1;
+        if (from < insertAt) insertAt -= 1;
+        if (insertAt === from) return;
+
+        remember();
+        var moved = slides.splice(from, 1)[0];
+        slides.splice(insertAt, 0, moved);
+        draggingIndex = null;
+        render();
+      });
+      deck.appendChild(card);
+    });
+  }
+
+  function updateSrcdocCounters(srcdoc, index, total) {
+    if (!fixPageNums.checked) return srcdoc;
+    var pageDoc = new DOMParser().parseFromString(srcdoc, "text/html");
+    var updated = false;
+    pageDoc.querySelectorAll("[data-page-counter], #slide-num, .page-num, .page-counter").forEach(function (element) {
+      var match = (element.textContent || "").match(/^\s*(\d{1,2})\s*\/\s*(\d{1,3})\s*$/);
+      if (!match) return;
+      var page = String(index);
+      if (match[1].length > 1) page = page.padStart(match[1].length, "0");
+      element.textContent = page + " / " + total;
+      updated = true;
+    });
+    return updated ? "<!DOCTYPE html>\n" + pageDoc.documentElement.outerHTML : srcdoc;
+  }
+
+  function updateOuterShell(documentClone, total) {
+    var counter = documentClone.querySelector("#counter");
+    if (counter) counter.textContent = "1 / " + total;
+  }
+
+  function exportHtml() {
+    var clone = new DOMParser().parseFromString(sourceText, "text/html");
+    var oldFrames = Array.prototype.slice.call(clone.querySelectorAll("iframe.frame"));
+    if (!oldFrames.length) return;
+    var parent = oldFrames[0].parentNode;
+    var anchor = oldFrames[0];
+    var total = slides.length;
+    slides.forEach(function (slide, index) {
+      var frame = oldFrames[0].cloneNode(false);
+      frame.id = "f" + (index + 1);
+      frame.className = "frame";
+      frame.setAttribute("srcdoc", updateSrcdocCounters(slide.srcdoc, index + 1, total));
+      if (index === 0) frame.removeAttribute("style");
+      else frame.setAttribute("style", "display:none");
+      parent.insertBefore(frame, anchor);
+    });
+    oldFrames.forEach(function (frame) { frame.remove(); });
+    updateOuterShell(clone, total);
+    var html = "<!DOCTYPE html>\n" + clone.documentElement.outerHTML;
+    var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName.replace(/\.html?$/i, "") + "_edited.html";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  function loadSource(text, name) {
+    sourceText = String(text || "");
+    fileName = name || fileName;
+    doc = new DOMParser().parseFromString(sourceText, "text/html");
+    slides = Array.prototype.slice.call(doc.querySelectorAll("iframe.frame")).map(function (frame) {
+      return { srcdoc: frame.getAttribute("srcdoc") || "" };
+    });
+    render();
+  }
+
+  file.addEventListener("change", function () {
+    var selected = file.files[0];
+    if (!selected) return;
+    fileName = selected.name || fileName;
+    var reader = new FileReader();
+    reader.onload = function () { loadSource(reader.result, selected.name || fileName); };
+    reader.readAsText(selected);
+  });
+  exportBtn.addEventListener("click", exportHtml);
+  undoBtn.addEventListener("click", undo);
+  cancelEdit.addEventListener("click", closeEditor);
+  saveEdit.addEventListener("click", saveCurrentEdit);
+  fontMinus.addEventListener("click", function () { adjustFontSize(-1); });
+  fontPlus.addEventListener("click", function () { adjustFontSize(1); });
+  fontFamily.addEventListener("change", function () {
+    if (fontFamily.value) editCommand("fontName", fontFamily.value);
+    fontFamily.value = "";
+  });
+  deleteSelection.addEventListener("click", function () { editCommand("delete"); });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && editModal.classList.contains("open")) closeEditor();
+  });
+
+  if (window.__DECK_SOURCE__) {
+    loadSource(window.__DECK_SOURCE__, window.__DECK_FILENAME__ || fileName);
+  }
+})();
+</script>
+</body>
+</html>
